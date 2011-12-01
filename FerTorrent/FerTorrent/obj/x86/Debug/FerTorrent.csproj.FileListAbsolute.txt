@@ -1,0 +1,17 @@
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\bin\Debug\FerTorrent.exe
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\bin\Debug\FerTorrent.pdb
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\ResolveAssemblyReference.cache
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\MainWindow.baml
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\Preferences.baml
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\MainWindow.g.cs
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\Preferences.g.cs
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\App.g.cs
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\FerTorrent_MarkupCompile.cache
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\FerTorrent.g.resources
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\FerTorrent.Properties.Resources.resources
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\GenerateResource.read.1.tlog
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\GenerateResource.write.1.tlog
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\FerTorrent.exe
+c:\users\a\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\FerTorrent.pdb
+C:\Users\A\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\MainPage.baml
+C:\Users\A\documents\visual studio 2010\Projects\Rasus\FerTorrent\FerTorrent\obj\x86\Debug\MainPage.g.cs
