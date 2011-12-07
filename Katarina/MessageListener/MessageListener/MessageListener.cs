@@ -69,7 +69,7 @@ namespace MessageListener
                     have();
                     break;
                 case 6:
-                    request(payload);
+                    Request(payload);
                     break;
                 case 7:
                     Peace(payload);
@@ -90,7 +90,7 @@ namespace MessageListener
             throw new NotImplementedException();
         }
 
-        private void request(byte[] payload)
+        private void Request(byte[] payload)
         {
             //payload = piece index + block offset + block length
             int pieceIndex = BitConverter.ToInt32(payload, 0);
