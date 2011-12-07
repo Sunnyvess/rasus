@@ -6,13 +6,14 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Net;
 using System.Security.Cryptography;
+using FairTorrent;
 
 namespace TorrentClient
 {
     public class PWPClient
     {
-        
-        public string metainfoKey;
+     
+        public string metaInfo;
         public string peerId;
 
         private TcpListener tcpListener;
@@ -27,10 +28,10 @@ namespace TorrentClient
         private List<Peer> peers = new List<Peer>();
         public List<string> connectedPeerNames = new List<string>();
 
-        public PWPClient(int port, string peerId, string metainfoKey)
+        public PWPClient(int port, string peerId, string metaInfo)
         {
             this.localPort = port;
-            this.metainfoKey = metainfoKey;
+            this.metaInfo = metaInfo;
             this.peerId = peerId;
             this.numConnections = 0;
 
