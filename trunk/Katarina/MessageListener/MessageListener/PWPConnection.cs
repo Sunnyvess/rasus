@@ -9,5 +9,8 @@ namespace MessageListener
     {
         public FairTorrent.Torrent torrent;
 
+        public void CloseConnection()
+        {}
+
     }
 }
