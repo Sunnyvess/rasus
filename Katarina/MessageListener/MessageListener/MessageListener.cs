@@ -93,14 +93,16 @@ namespace MessageListener
         private void request(byte[] payload)
         {
             //payload = piece index + block offset + block length
-            byte pieceIndex = payload[0];
-            byte blocOffset = payload[1];
-            byte blockLength = payload[2];
+            int pieceIndex = BitConverter.ToInt32(payload, 0);
+            int blocOffset = BitConverter.ToInt32(payload, 4);
+            int blockLength = BitConverter.ToInt32(payload, 8);
+
+            int pieceLength = torrent.Info.PieceLength;
 
             //treba pronac iz kojeg fajla se cita
             //znamo kolika je velicina kojeg fajla, velicinu piecea i koji piece nam treba
             int position = 0;
-            int piecePosition = pieceIndex * torrent.Info.PieceLength;
+            int piecePosition = pieceIndex * pieceLength;
             int i = 0;
             while (position < piecePosition)
             {
@@ -109,7 +111,9 @@ namespace MessageListener
             //i-1 je indeks fajla u kojem se piece nalazi
             FairTorrent.FileInfo fileInfo = torrent.Info.Files[i - 1];
             int fileIndex = i - 1;
-
+            
+            byte[] pieceBuffer = 
+            
             //provjera da piece sadrži samo jedan file ili dva
             //ako je pocetak piecea u jednom fileu a kraj u drugom
             //pocetak slijedeceg filea se nalazi u varijabli position
@@ -117,7 +121,7 @@ namespace MessageListener
             {
                 //citamo iz jednog filea
                 var fileStream = File.Open(fileInfo.Path, FileMode.Open, FileAccess.Read);
-
+                //fileStream.Read()
 
             }
             else
