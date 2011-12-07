@@ -258,12 +258,8 @@ namespace TorrentClient
             NetworkStream clientStream = tcpClient.GetStream();
 
             MessageListener messageListener = new MessageListener(this);
-            Thread messageListenerThread = new Thread(new ParameterizedThreadStart(messageListener.listenForMessages));
-            try{
+            Thread messageListenerThread = new Thread(new ParameterizedThreadStart(messageListener.Listen));
             messageListenerThread.Start(clientStream);
-            }catch{
-                Console.WriteLine("Uhvacena iznimka!");
-            }
 
             
             Console.WriteLine("Radimo nešto korisno zajedno!");
@@ -275,30 +271,16 @@ namespace TorrentClient
 
                 //ako je za napraviti nešto pametno - poslat zahtjev npr, pošalji ga :D
                 
-                sendMessage(clientStream, new byte[]{1});
-                
-
-                byte[] buffer = new byte[1];
-                int bytesRead = 0;
-                try{
-                    bytesRead = clientStream.Read(buffer, 0, buffer.Length);
-                }
-                catch{
-                    break;
-                }
-                if (bytesRead == 0) //kako ovo napravit u asinkronom modu rada?
-                {
-                    break;
-                }
+                sendMessage(clientStream, new byte[]{11, 2, 0, 0 , 0, 3, 3, 1, 3, 4, 3, 2});
             }
-            /*
-            */
+
             closeConnection("Redovan kraj rada");
         }
 
         private void sendMessage(NetworkStream stream, byte[] message){
 
            stream.Write(message, 0, message.Length);
+           stream.Flush();
         }
 
         public void closeConnection(string desc)
@@ -362,6 +344,103 @@ namespace TorrentClient
             //slušam !! clientStream.BeginRead();
 
             connectionToPeer.closeConnection("Redovno ubijam vezu!");
+        }
+
+        public void Listen(object _stream)
+        {
+            NetworkStream stream = (NetworkStream)_stream;
+
+            //izgled poruke => duljina poruke(4 bajta) + id poruke(4 bajta) + payload
+
+            //citanje duljine poruke
+            //duljina poruke je duljina id + payload
+            while (!stream.DataAvailable) ;
+            int messageSize = stream.ReadByte();
+            byte[] message = new byte[messageSize];
+
+            //citanje poruke
+
+            while(!stream.DataAvailable);
+            int bytesRead = stream.Read(message, 0, messageSize);
+
+            //odvajanje id porke i payloada
+            int messageId = BitConverter.ToInt32(message, 0);
+
+            int payloadSize = messageSize - 4;
+            byte[] payload = new byte[payloadSize];
+            Array.Copy(message, 4, payload, 0, payloadSize);
+
+            switch (messageId)
+            {
+                case 0:
+                    choke();
+                    break;
+                case 1:
+                    unchoke();
+                    break;
+                case 2:
+                    interested();
+                    break;
+                case 3:
+                    uninterested();
+                    break;
+                case 4:
+                    have();
+                    break;
+                case 6:
+                    request(payload);
+                    break;
+                case 7:
+                    peace(payload);
+                    break;
+                case 8:
+                    cancle();
+                    break;
+            }
+        }
+
+        private void cancle()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void peace(byte[] payload)
+        {
+            //payload = piece index + block offset + block length
+            byte pieceIndex = payload[0];
+            byte blocOffset = payload[1];
+            byte blockLength = payload[2];
+
+        }
+
+        private void request(byte[] payload)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void have()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void uninterested()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void interested()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void unchoke()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void choke()
+        {
+            throw new NotImplementedException();
         }
     }
 }
