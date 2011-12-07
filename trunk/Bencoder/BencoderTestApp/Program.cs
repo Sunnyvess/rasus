@@ -10,7 +10,7 @@ namespace BencoderTestApp
     {
         static void Main(string[] args)
         {
-            Torrent torrent = new Torrent(@"D:\Downloads\BossTest.torrent");
+            Torrent torrent = new Torrent(@"torrentZaTestOvdje");
 
             Console.ReadLine();
         }
