@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -10,10 +11,12 @@ namespace MessageListener
     class MessageListener
     {
         private Torrent torrent;
+        private PWPConnection connection;
         
-        public MessageListener(PWPConnection connection)
+        public MessageListener(PWPConnection _connection)
         {
             torrent = connection.torrent;
+            connection = _connection;
         }
 
         public void Listen(object _stream)
@@ -24,7 +27,18 @@ namespace MessageListener
             
             //citanje duljine poruke
             //duljina poruke je duljina id + payload
-            int messageSize = stream.ReadByte();
+            byte[] messageSizeByte = new byte[4];
+            
+            //ako je duljina poruke nula, tcp konekcija se zatvara
+            if (stream.Read(messageSizeByte, 0, 4) == 0)
+            {
+                connection.CloseConnection();
+                //promjeniti u break kad se doda petlja
+                return;
+            }
+
+            int messageSize = BitConverter.ToInt32(messageSizeByte, 0);
+
             byte[] message = new byte[messageSize];
 
             //citanje poruke
@@ -58,7 +72,7 @@ namespace MessageListener
                     request(payload);
                     break;
                 case 7:
-                    peace(payload);
+                    Peace(payload);
                     break;
                 case 8:
                     cancle();
@@ -71,19 +85,45 @@ namespace MessageListener
             throw new NotImplementedException();
         }
 
-        private void peace(byte[] payload)
+        private void Peace(byte[] payload)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void request(byte[] payload)
         {
             //payload = piece index + block offset + block length
             byte pieceIndex = payload[0];
             byte blocOffset = payload[1];
             byte blockLength = payload[2];
 
-            torrent.Info.PieceLength
-        }
+            //treba pronac iz kojeg fajla se cita
+            //znamo kolika je velicina kojeg fajla, velicinu piecea i koji piece nam treba
+            int position = 0;
+            int piecePosition = pieceIndex * torrent.Info.PieceLength;
+            int i = 0;
+            while (position < piecePosition)
+            {
+                position += torrent.Info.Files[i].Length;
+            }
+            //i-1 je indeks fajla u kojem se piece nalazi
+            FairTorrent.FileInfo fileInfo = torrent.Info.Files[i - 1];
+            int fileIndex = i - 1;
 
-        private void request(byte[] payload)
-        {
-            throw new NotImplementedException();
+            //provjera da piece sadrži samo jedan file ili dva
+            //ako je pocetak piecea u jednom fileu a kraj u drugom
+            //pocetak slijedeceg filea se nalazi u varijabli position
+            if (piecePosition + torrent.Info.PieceLength < position)
+            {
+                //citamo iz jednog filea
+                var fileStream = File.Open(fileInfo.Path, FileMode.Open, FileAccess.Read);
+
+
+            }
+            else
+            {
+                //citamo iz dva filea
+            }
         }
 
         private void have()
