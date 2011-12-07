@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using FairTorrent;
+using FileInfo = System.IO.FileInfo;
 
 namespace MessageListener
 {
@@ -72,7 +73,7 @@ namespace MessageListener
                     Request(payload);
                     break;
                 case 7:
-                    Peace(payload);
+                    Piece(payload);
                     break;
                 case 8:
                     cancle();
@@ -85,7 +86,7 @@ namespace MessageListener
             throw new NotImplementedException();
         }
 
-        private void Peace(byte[] payload)
+        private void Piece(byte[] payload)
         {
             throw new NotImplementedException();
         }
@@ -94,13 +95,13 @@ namespace MessageListener
         {
             //payload = piece index + block offset + block length
             int pieceIndex = BitConverter.ToInt32(payload, 0);
-            int blocOffset = BitConverter.ToInt32(payload, 4);
+            int blockOffset = BitConverter.ToInt32(payload, 4);
             int blockLength = BitConverter.ToInt32(payload, 8);
 
             int pieceLength = torrent.Info.PieceLength;
 
             //treba pronac iz kojeg fajla se cita
-            //znamo kolika je velicina kojeg fajla, velicinu piecea i koji piece nam treba
+            //tražimo u kojem fajlu pocinje piece
             int position = 0;
             int piecePosition = pieceIndex * pieceLength;
             int i = 0;
@@ -108,26 +109,51 @@ namespace MessageListener
             {
                 position += torrent.Info.Files[i].Length;
             }
-            //i-1 je indeks fajla u kojem se piece nalazi
-            FairTorrent.FileInfo fileInfo = torrent.Info.Files[i - 1];
+            //i-1 je indeks fajla u kojem pocinje piece
             int fileIndex = i - 1;
             
-            //byte[] pieceBuffer = 
-            
-            //provjera da piece sadrži samo jedan file ili dva
-            //ako je pocetak piecea u jednom fileu a kraj u drugom
-            //pocetak slijedeceg filea se nalazi u varijabli position
-            if (piecePosition + torrent.Info.PieceLength < position)
-            {
-                //citamo iz jednog filea
-                var fileStream = File.Open(fileInfo.Path, FileMode.Open, FileAccess.Read);
-                //fileStream.Read()
 
+
+            //tocna pozicija od kuda pocinjemo citati podakte
+            int blockPosition = piecePosition + blockOffset;
+
+            byte[] fileBuffer = new byte[blockLength];
+            //provjera da li citamo podatke iz jednog ili dva fajla
+            //ako je blok na granici fajlova onda citamo iz dva (kraj jednog i pocetak drugog)
+            //u position se nalazi pocetak slijedeceg fajla
+            if(blockPosition + blockLength < position)
+            {
+                //cijeli blok je u jednom fajlu
+                FairTorrent.FileInfo torrentFileInfo = torrent.Info.Files[i - 1];
+                FileStream fileStream = new FileStream(torrentFileInfo.Path, FileMode.Open, FileAccess.Read);
+                fileStream.Read(fileBuffer, blockPosition, blockLength);
+
+                //posalji nekome ko ce izgenerirati piece poruku (podaci su u fileBuffer)
             }
             else
             {
-                //citamo iz dva filea
+                //duljina dijela u prvom i u drugom fajlu
+                int secondLength = (blockPosition + blockLength) - position;
+                int firstLength = blockLength - secondLength;
+
+                //citanje dijela iz prvog fajla
+                FairTorrent.FileInfo firstFileInfo = torrent.Info.Files[i - 1];
+                FileStream firstFileStream = new FileStream(firstFileInfo.Path, FileMode.Open, FileAccess.Read);
+                byte[] firstBuff = new byte[firstLength];
+                firstFileStream.Read(firstBuff, blockPosition, firstLength);
+
+                //citanje dijela iz drugog fajla
+                FairTorrent.FileInfo secondFileInfo = torrent.Info.Files[i];
+                FileStream secondFileStream = new FileStream(secondFileInfo.Path, FileMode.Open, FileAccess.Read);
+                byte[] secondBuff = new byte[secondLength];
+                secondFileStream.Read(secondBuff, 0, secondLength);
+
+                Buffer.BlockCopy(firstBuff, 0, fileBuffer, 0, firstLength);
+                Buffer.BlockCopy(secondBuff, 0, fileBuffer, firstLength, secondLength);
+
+                //posalji nekome ko ce izgenerirati piece poruku (podaci su u fileBuffer)
             }
+
         }
 
         private void have()
