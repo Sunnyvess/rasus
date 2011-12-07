@@ -112,7 +112,7 @@ namespace MessageListener
             FairTorrent.FileInfo fileInfo = torrent.Info.Files[i - 1];
             int fileIndex = i - 1;
             
-            byte[] pieceBuffer = 
+            //byte[] pieceBuffer = 
             
             //provjera da piece sadrži samo jedan file ili dva
             //ako je pocetak piecea u jednom fileu a kraj u drugom
