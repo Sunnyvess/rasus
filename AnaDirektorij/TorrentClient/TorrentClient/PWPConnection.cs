@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.IO;
 using System.Web;
+using FairTorrent.BEncoder;
 
 namespace TorrentClient
 {
@@ -116,31 +117,11 @@ namespace TorrentClient
             Array.ConstrainedCopy(protocolName, 0, message, 1, 19);
 
             SHA1Managed SHA1hashing = new SHA1Managed();
-            byte[] sha1Hash = SHA1hashing.ComputeHash(getMetaInfoKey());
-         /*
-
-            
-
-            char[] array = info.ToArray();
-             
-            foreach(char ch in array){
-                
-            }
-
-
-            
-
-            byte[] test = new byte[]{84,124,15,255,155,171,156,168,91,46,204,24,249,116,110, 139,202,167,163,54};
-
-            //string pretvoreno = Convertor.byteArrayToStringUTF8(test,0 , test.Length);
-
-            */
-         //   string info = "788f590f28a799cc1009a9b780b649fd6f0a2e91";
-       //     byte[] sha1Hash = Convertor.strToByteArrayASCII(info);
+            byte[] sha1Hash = SHA1hashing.ComputeHash(this.localClient.infoBytes);
 
             Array.ConstrainedCopy(sha1Hash, 0, message, 28, sha1Hash.Length);
 
-            byte[] clientName = Convertor.strToByteArrayUTF8(localClient.peerId);
+            byte[] clientName = Convertor.strToByteArrayUTF8(localClient.clientName);
             Array.ConstrainedCopy(clientName, 0, message, 48, 20);
 
             Console.WriteLine("Poslani handshake string: ");
@@ -156,23 +137,10 @@ namespace TorrentClient
 
         
         //ova metoda ne bi smjela bit u ovoj klasi?
-        private byte[] getMetaInfoKey(){
-            byte[] metaByteArray = File.ReadAllBytes("proba.torrent");
-            //string metaString = File.ReadAllText("proba.torrent", new UTF8Encoding());
-            string metaString = Convertor.byteArrayToStringUTF8(metaByteArray, 0, metaByteArray.Length);
-            int beginIndex = metaString.IndexOf("infod") + "infod".Length;
-
-            string interString = metaString.Substring(beginIndex, metaString.Length - beginIndex);
-            int endIndex = interString.IndexOf("ee");
-            int len = endIndex;
-            string rez =  metaString.Substring(beginIndex, len);
-            //Console.WriteLine(beginIndex +"  "+ endIndex);
-            Console.WriteLine(rez.Substring(rez.Length-20,20));
-            //Console.ReadLine();
-            byte[] nekaj = Convertor.strToByteArrayUTF8(metaString);
-            byte[] info = Convertor.strToByteArrayUTF8(rez);
+    /*    private byte[] getMetaInfoKey(){
+            byte[] info = InfoExtractor.ExtractInfoValue("Singing.torrent");
             return info;
-        }
+        }*/
 
         private byte[] reciveHandshake(object client)
         {
@@ -222,7 +190,13 @@ namespace TorrentClient
 
             //izracunaj vlastiti
             SHA1Managed SHA1hashing = new SHA1Managed();
-            byte[] localMetaInfoHash = SHA1hashing.ComputeHash(getMetaInfoKey());
+            byte[] localMetaInfoHash = SHA1hashing.ComputeHash(this.localClient.infoBytes);
+
+            string hexa = BitConverter.ToString(localMetaInfoHash);
+
+         //   string outHexa ="30-6B-95-D3-CA-29-2E-20-AC-ED-F6-49-EC-52-81-A4-6E-98-0B-E9";
+
+           // 306B95D3CA292E20ACEDF649EC5281A46E980BE9
 
             for(int i = 0; i < 20; i++){
                 if(localMetaInfoHash[i] != metaInfoHash[i]){
@@ -235,9 +209,9 @@ namespace TorrentClient
 
         private bool peerNameIsUnique(byte[] message){
 
-            string clientName = Convertor.byteArrayToStringUTF8(message, 48, 20);
+            string peerName = Convertor.byteArrayToStringUTF8(message, 48, 20);
 
-            if (localClient.peerId == clientName || localClient.connectedPeerNames.Contains(clientName))
+            if (localClient.clientName == peerName || localClient.connectedPeerNames.Contains(peerName))
             {
                 return false;
             }else{
@@ -247,9 +221,9 @@ namespace TorrentClient
 
         private void addPeerToActivePeers(byte[] message)
         {
-            string clientName = Convertor.byteArrayToStringUTF8(message, 48, 20);
-            this.peerName = clientName;
-            localClient.connectedPeerNames.Add(clientName);
+            string peerName = Convertor.byteArrayToStringUTF8(message, 48, 20);
+            this.peerName = peerName;
+            localClient.connectedPeerNames.Add(peerName);
         }
 
 
@@ -271,7 +245,7 @@ namespace TorrentClient
 
                 //ako je za napraviti nešto pametno - poslat zahtjev npr, pošalji ga :D
                 
-                sendMessage(clientStream, new byte[]{11, 2, 0, 0 , 0, 3, 3, 1, 3, 4, 3, 2});
+             //   sendMessage(clientStream, new byte[]{11, 2, 0, 0 , 0, 3, 3, 1, 3, 4, 3, 2});
             }
 
             closeConnection("Redovan kraj rada");
@@ -298,44 +272,11 @@ namespace TorrentClient
 
     }
 
-    public class Convertor{
-
-        public static byte[] strToByteArrayUTF8(string str)
-        {
-            System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-            return encoding.GetBytes(str);
-        }
-
-        public static byte[] strToByteArrayUTF16(string str)
-        {
-            System.Text.UnicodeEncoding encoding = new System.Text.UnicodeEncoding();
-            return encoding.GetBytes(str);
-        }
-
-        public static byte[] strToByteArrayASCII(string str)
-        {
-            System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
-            return encoding.GetBytes(str);
-        }
-
-        public static string byteArrayToStringUTF8(byte[] array, int startIndex, int length)
-        {
-            System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-            return encoding.GetString(array, startIndex, length);
-        }
-
-        public static string byteArrayToStringASCII(byte[] array, int startIndex, int length)
-        {
-            System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
-            return encoding.GetString(array, startIndex, length);
-        } 
-    }
-
     //klasa koja čeka konkretnu implementaciju 
     public class MessageListener{
         
         PWPConnection connectionToPeer;
-
+        
         public MessageListener(PWPConnection connection){
             this.connectionToPeer = connection;
         }
@@ -346,22 +287,39 @@ namespace TorrentClient
             connectionToPeer.closeConnection("Redovno ubijam vezu!");
         }
 
+       
         public void Listen(object _stream)
         {
-            NetworkStream stream = (NetworkStream)_stream;
+            NetworkStream stream = (NetworkStream) _stream;
 
             //izgled poruke => duljina poruke(4 bajta) + id poruke(4 bajta) + payload
-
+            
             //citanje duljine poruke
             //duljina poruke je duljina id + payload
-            while (!stream.DataAvailable) ;
-            int messageSize = stream.ReadByte();
+            byte[] messageSizeByte = new byte[4];
+            
+            //ako je duljina poruke nula, tcp konekcija se zatvara
+            if (stream.Read(messageSizeByte, 0, 4) == 0)
+            {
+                this.connectionToPeer.closeConnection("Prilikom pokušaja čitanja poruke ustanovljeno je da je peer prekinuo vezu");
+                //promjeniti u break kad se doda petlja
+                return;
+            }
+
+            Console.WriteLine(BitConverter.ToString(messageSizeByte));
+
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(messageSizeByte);
+
+            int messageSize = BitConverter.ToInt32(messageSizeByte, 0);
+
             byte[] message = new byte[messageSize];
 
             //citanje poruke
+            stream.Read(message, 0, messageSize);
 
-            while(!stream.DataAvailable);
-            int bytesRead = stream.Read(message, 0, messageSize);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(message);
 
             //odvajanje id porke i payloada
             int messageId = BitConverter.ToInt32(message, 0);
@@ -370,7 +328,7 @@ namespace TorrentClient
             byte[] payload = new byte[payloadSize];
             Array.Copy(message, 4, payload, 0, payloadSize);
 
-            switch (messageId)
+            switch(messageId)
             {
                 case 0:
                     choke();

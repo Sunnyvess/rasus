@@ -13,8 +13,9 @@ namespace TorrentClient
     public class PWPClient
     {
      
-        public string metaInfo;
-        public string peerId;
+        public Torrent torrentMetaInfo;
+        public byte[] infoBytes;
+        public string clientName;
 
         private TcpListener tcpListener;
         private Thread listenThread;
@@ -28,11 +29,12 @@ namespace TorrentClient
         private List<Peer> peers = new List<Peer>();
         public List<string> connectedPeerNames = new List<string>();
 
-        public PWPClient(int port, string peerId, string metaInfo)
+        public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes)
         {
             this.localPort = port;
-            this.metaInfo = metaInfo;
-            this.peerId = peerId;
+            this.clientName = name;
+            this.torrentMetaInfo = metaInfo;
+            this.infoBytes = infoBytes;
             this.numConnections = 0;
 
             this.tcpListener = new TcpListener(IPAddress.Any, localPort);
@@ -112,9 +114,6 @@ namespace TorrentClient
                     clientThread.Start(client);
                 }
             }
-        }
-
-         
+        }       
     }
-
 }
