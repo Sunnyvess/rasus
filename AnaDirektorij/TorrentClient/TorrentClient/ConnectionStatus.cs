@@ -6,6 +6,7 @@ using System.Text;
 namespace TorrentClient
 {
     //information holder - zastavice ! uzimam tominu implementaciju kad bude gotova
+    //pamćenje stanja veze
     class ConnectionStatus
     {
         bool choked;

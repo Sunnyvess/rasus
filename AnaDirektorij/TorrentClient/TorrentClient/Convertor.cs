@@ -5,6 +5,7 @@ using System.Text;
 
 namespace TorrentClient
 {
+    //pretvaranje između stringa i byte[] uz različite encodinge
     class Convertor
     {
         public static byte[] strToByteArrayUTF8(string str)

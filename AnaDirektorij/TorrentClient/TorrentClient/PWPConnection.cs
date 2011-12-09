@@ -15,16 +15,17 @@ namespace TorrentClient
     public class PWPConnection
     {
 
-        PWPClient localClient;
-        TcpClient peerClient;
+        PWPClient localClient; //ja
+        TcpClient peerClient;  // onaj drugi
 
-        string peerName;
+        string peerName; // ime onog s druge strane veze
 
         public PWPConnection(PWPClient newLocalClient)
         {
             this.localClient = newLocalClient;
         }
 
+        //probaj se spojiti na peera
         public void ConnectToPeer(object newPeer)
         {
             Peer peer = (Peer)newPeer;
@@ -40,6 +41,7 @@ namespace TorrentClient
             initiateComunication(client);
         }
 
+        //zapocni komunikaciju s peerom - pošalji handshake, primi handshake i provjeri jel sve štima
         private void initiateComunication(TcpClient tcpClient)
         {
             sendHandshake(tcpClient);
@@ -68,6 +70,8 @@ namespace TorrentClient
             }
         }
 
+        //ocekuj handshake - ako si prihvatio vezu od nekog peera, on prvi šalje handshake
+        // ako njegov handshake valja, salji svoj
         public void ListenForHandshake(object client)
         {
             TcpClient tcpClient = (TcpClient) client;
@@ -99,6 +103,7 @@ namespace TorrentClient
 
         }
 
+        //Slanje handshake poruke
         private void sendHandshake(TcpClient client)
         {
 
@@ -107,6 +112,7 @@ namespace TorrentClient
             clientStream.Write(handshakeBytes, 0, handshakeBytes.Length);
         }
 
+        //kreiranje handshake poruke
         private byte[] createHandshakeArray()
         {
             byte[] message = new byte[68];
@@ -135,13 +141,7 @@ namespace TorrentClient
             return message;
         }
 
-        
-        //ova metoda ne bi smjela bit u ovoj klasi?
-    /*    private byte[] getMetaInfoKey(){
-            byte[] info = InfoExtractor.ExtractInfoValue("Singing.torrent");
-            return info;
-        }*/
-
+        //primanje handskahe poruke
         private byte[] reciveHandshake(object client)
         {
             TcpClient tcpClient = (TcpClient)client;
@@ -194,10 +194,7 @@ namespace TorrentClient
 
             string hexa = BitConverter.ToString(localMetaInfoHash);
 
-         //   string outHexa ="30-6B-95-D3-CA-29-2E-20-AC-ED-F6-49-EC-52-81-A4-6E-98-0B-E9";
-
-           // 306B95D3CA292E20ACEDF649EC5281A46E980BE9
-
+            //provjeri jel su primljeni i vlastiti hash jednaki
             for(int i = 0; i < 20; i++){
                 if(localMetaInfoHash[i] != metaInfoHash[i]){
                     return false;
@@ -207,6 +204,7 @@ namespace TorrentClient
             return true;
         }
 
+        //provjeri jel se peer indentificirao jedinstvenim imenom prema kojem već nemamo vezu
         private bool peerNameIsUnique(byte[] message){
 
             string peerName = Convertor.byteArrayToStringUTF8(message, 48, 20);
@@ -219,6 +217,7 @@ namespace TorrentClient
             }
         }
 
+        //dodaj ime peera u listu peerova s kojima imamo aktivnu vezu
         private void addPeerToActivePeers(byte[] message)
         {
             string peerName = Convertor.byteArrayToStringUTF8(message, 48, 20);
@@ -226,7 +225,7 @@ namespace TorrentClient
             localClient.connectedPeerNames.Add(peerName);
         }
 
-
+        //slanje i primanje poruka - dok nije cijeli file prenesen ? (ko na kraju prekida vezu?)
         private void handleClientComm(TcpClient tcpClient)
         {
             NetworkStream clientStream = tcpClient.GetStream();
@@ -245,18 +244,21 @@ namespace TorrentClient
 
                 //ako je za napraviti nešto pametno - poslat zahtjev npr, pošalji ga :D
                 
-             //   sendMessage(clientStream, new byte[]{11, 2, 0, 0 , 0, 3, 3, 1, 3, 4, 3, 2});
+             //   sendMessage(clientStream, new byte[]{11, 0, 0, 0, 2, 0, 0 , 0, 3, 3, 1, 3, 4, 3, 2});
             }
 
             closeConnection("Redovan kraj rada");
         }
 
+
+        //posalji peeru poruku
         private void sendMessage(NetworkStream stream, byte[] message){
 
            stream.Write(message, 0, message.Length);
            stream.Flush();
         }
 
+        //zatvaranje konekcije prema peeru - smanjenje broja konekcija, micanje peera iz aktivnih peerova
         public void closeConnection(string desc)
         {
             lock(localClient.lockerBrojaKonekcija){

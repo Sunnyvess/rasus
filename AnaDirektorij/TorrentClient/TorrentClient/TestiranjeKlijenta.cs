@@ -7,8 +7,14 @@ using FairTorrent.BEncoder;
 
 namespace TorrentClient
 {
-    class KlijentPrvi
+    
+    class TestiranjeKlijenta
     {
+        //parametri : 
+        //     0.- port na kojem prihvacam konekcije
+        //     1.- ime ovog klijenta (20 znakova)
+        //     2.- lokacija torrent fajla
+        //     3. nadalje - popis svih portova na kojima su klijenti na koje se mogu spojiti
         static void Main(string[] args)
         {
             List<Peer> peerovi = new List<Peer>();
