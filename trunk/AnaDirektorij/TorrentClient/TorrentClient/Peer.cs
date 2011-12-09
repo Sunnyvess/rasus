@@ -5,6 +5,7 @@ using System.Text;
 
 namespace TorrentClient
 {
+    //information holder
     public class Peer
     {
         private string ipAdress;

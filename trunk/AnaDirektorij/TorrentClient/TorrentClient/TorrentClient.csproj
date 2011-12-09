@@ -72,7 +72,7 @@
     <Compile Include="InfoExtractor.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="KlijentPrvi.cs" />
+    <Compile Include="TestiranjeKlijenta.cs" />
     <Compile Include="Peer.cs" />
     <Compile Include="PWPClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

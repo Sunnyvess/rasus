@@ -42,6 +42,7 @@ namespace TorrentClient
             this.listenThread.Start();
         }
 
+        //javno dostupna metoda kroz koju se Clientu dojavljuju trenutno dostupni peerovi
         public void refreshPeers( List<Peer> currentPeers ){
 
             List<Peer> newPeers = new List<Peer>();
@@ -78,6 +79,7 @@ namespace TorrentClient
             }         
         }
 
+        //metoda koja prihvaća zahtjeve za kojekcijama od peerova
         private void ListenForClients()
         {
             Console.WriteLine("Klijent sluša na portu " + this.localPort);
