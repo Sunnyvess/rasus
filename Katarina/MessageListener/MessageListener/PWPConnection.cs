@@ -14,8 +14,8 @@ namespace TorrentClient
 {
     public class PWPConnection
     {
-
-        PWPClient localClient;
+        
+        public PWPClient localClient;
         TcpClient peerClient;
 
         string peerName;
