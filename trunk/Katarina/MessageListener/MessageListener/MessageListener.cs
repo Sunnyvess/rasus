@@ -153,7 +153,6 @@ namespace MessageCommunication
                     //upisi da je piece primljen
 
                     RecordPiece(pieceIndex, _piece);
-                    //spremi ga u datoteku -- isto kao za citanje u sendPiece
 
                 }
                 else
