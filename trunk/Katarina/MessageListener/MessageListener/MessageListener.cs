@@ -16,8 +16,8 @@ namespace MessageCommunication
 
         public MessageListener(PWPConnection connection)
         {
-            _torrent = _connection.localClient.torrentMetaInfo;
             _connection = connection;
+            _torrent = _connection.localClient.torrentMetaInfo;
             _piece = new byte[_torrent.Info.PieceLength];
             _partsInPiece = new byte[_torrent.Info.PieceLength];
             _partsInPiece.Initialize();
