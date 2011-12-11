@@ -85,6 +85,7 @@ namespace MessageCommunication
                         FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
 
                         int bytesReaded = fileStream.Read(tempBuffer, startRadingOffset, bytesToRead);
+                        if (bytesReaded == 0) _connection.closeConnection("Nemogu procitati podatke iz datoteke.");
 
                         //spajanje do sada procitanog
                         Buffer.BlockCopy(tempBuffer, 0, buffer, totalBytesReaded, bytesReaded);
@@ -106,7 +107,7 @@ namespace MessageCommunication
                         }
                     }
 
-
+                    if (totalBytesReaded == 0) _connection.closeConnection("Nemogu procitati podatke iz datoteke.");
                 }
             }
 
