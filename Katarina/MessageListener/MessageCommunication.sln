@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageListener", "MessageListener\MessageListener.csproj", "{B6D8BBE1-E4E1-467B-82BB-12DD0A45A842}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageCommunication", "MessageListener\MessageCommunication.csproj", "{B6D8BBE1-E4E1-467B-82BB-12DD0A45A842}"
 EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
