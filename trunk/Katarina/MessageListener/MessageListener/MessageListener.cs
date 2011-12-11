@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using FairTorrent;
 using TorrentClient;
 
@@ -50,7 +50,7 @@ namespace MessageCommunication
             stream.Read(message, 0, messageSize);
 
             //odvajanje id porke i payloada
-            byte[] messageIdInBytes = new byte[] { 0, 0, 0, message[0] };
+            var messageIdInBytes = new byte[] { 0, 0, 0, message[0] };
             int messageId = BitConverter.ToInt32(ConvertToBigEndian(messageIdInBytes), 0);
             Console.WriteLine("Id primljene poruke je {0}", messageId);
 
@@ -116,7 +116,7 @@ namespace MessageCommunication
 
             int blockLength = payload.Length - 8;
 
-            byte[] blockData = new byte[blockLength];
+            var blockData = new byte[blockLength];
             Buffer.BlockCopy(payload, 8, blockData, 0, blockLength);
             
             //sprema blok u piece
@@ -140,9 +140,28 @@ namespace MessageCommunication
             {
                 //skupljen je cijeli piece
 
-                //provjeri jel dobar
-                //upisi da je primljen piece
-                //spremi ga u file
+                //provjera da li je piece dobar
+                SHA1 sha1 = new SHA1Managed();
+                byte[] recievedPieceHash = sha1.ComputeHash(_piece);
+                var pieceHash = new byte[20];
+                Buffer.BlockCopy(_torrent.Info.Pieces, 20*pieceIndex, pieceHash, 0, 20);
+                if(recievedPieceHash.Equals(pieceHash))
+                {
+                    //skinuti piece je dobar
+
+                    //upisi da je piece primljen
+
+                    //spremi ga u datoteku -- isto kao za citanje u sendPiece
+                }
+                else
+                {
+                    //piece nije dobar
+
+                    //upisi da piece nije primljen
+                    _piece.Initialize();
+                    _partsInPiece.Initialize();
+                }
+
             }
         }
 
