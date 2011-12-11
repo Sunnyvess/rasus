@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using FairTorrent;
@@ -151,7 +152,9 @@ namespace MessageCommunication
 
                     //upisi da je piece primljen
 
+                    RecordPiece(pieceIndex, _piece);
                     //spremi ga u datoteku -- isto kao za citanje u sendPiece
+
                 }
                 else
                 {
@@ -165,6 +168,91 @@ namespace MessageCommunication
             }
         }
 
+        private static void RecordPiece(int pieceIndex, byte[] piece)
+        {
+
+            //provjera da li je jedan ili vise fileova u torrentu
+            if (_torrent.Info.GetType().Equals(typeof (SingleFileTorrentInfo)))
+            {
+                var torrentInfo = (SingleFileTorrentInfo) _torrent.Info;
+                int pieceLength = torrentInfo.PieceLength;
+
+                var fileInfo = new System.IO.FileInfo(torrentInfo.File.Path);
+                FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
+
+                int writingOffset = pieceIndex*pieceLength;
+                fileStream.Write(piece, writingOffset, pieceLength);
+            }
+            else
+            {
+                var torrentInfo = (MultiFileTorrentInfo) _torrent.Info;
+                int pieceLength = torrentInfo.PieceLength;
+
+
+                //trazenje u kojem fileu se nalazi trazeni piece
+                int offsetInTorrent = pieceIndex*pieceLength;
+
+                int fileIndex = 0; //index filea u torrentu
+                int nextFileOffset = torrentInfo.Files[0].Length;
+                while (nextFileOffset < offsetInTorrent)
+                {
+                    fileIndex++;
+                    nextFileOffset += torrentInfo.Files[fileIndex].Length;
+                }
+
+                int fileOffset = nextFileOffset - torrentInfo.Files[fileIndex].Length;
+
+
+                //provjera da li je piece iz jednog filea ili iz vise njih
+                if (nextFileOffset > offsetInTorrent + pieceLength)
+                {
+                    //piece je iz jednog filea
+
+                    var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
+                    FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
+
+                    int writingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
+
+                    fileStream.Read(piece, writingOffset, pieceLength);
+                }
+                else
+                {
+                    //piece je iz vise fileova
+
+                    //granice od kud do kud se cita iz kojeg filea
+                    int startRadingOffset = offsetInTorrent - fileOffset;
+                    int endReadingOffset = nextFileOffset;
+                    while (fileOffset < offsetInTorrent + pieceLength)
+                    {
+                        //citanje iz filea
+                        int bytesToWrite = endReadingOffset - startRadingOffset;
+                        var tempBuffer = new byte[bytesToWrite];
+
+                        var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
+                        FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
+
+                        fileStream.Read(tempBuffer, startRadingOffset, bytesToWrite);
+
+                        //priprema za pisanje u  slijedeci file
+                        fileIndex++;
+                        fileOffset = nextFileOffset;
+                        nextFileOffset += torrentInfo.Files[fileIndex].Length;
+
+                        startRadingOffset = endReadingOffset;
+                        if (nextFileOffset < offsetInTorrent + pieceLength)
+                        {
+                            endReadingOffset = nextFileOffset;
+                        }
+                        else
+                        {
+                            endReadingOffset = offsetInTorrent + pieceLength;
+                        }
+                    }
+
+
+                }
+            }
+        }
 
         /// <summary>
         /// Obradjuje primljenu poruku request
