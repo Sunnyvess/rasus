@@ -56,7 +56,7 @@ namespace MessageCommunication
 
             int payloadSize = messageSize - 1;
             var payload = new byte[payloadSize];
-            Buffer.BlockCopy(message, 4, payload, 0, payloadSize);
+            Buffer.BlockCopy(message, 1, payload, 0, payloadSize);
 
             switch (messageId)
             {
