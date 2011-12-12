@@ -21,7 +21,9 @@ namespace MessageCommunication
         {
             while(true){
                 var stream = (NetworkStream) _stream;
-
+                if (stream.CanTimeout)
+                    stream.ReadTimeout = 2 * 60 * 1000; //ceka dvije sekunde
+                
                 //izgled poruke => duljina poruke(4 bajta) + id poruke(4 bajta) + payload
 
                 //citanje duljine poruke
@@ -32,22 +34,44 @@ namespace MessageCommunication
                 if(!stream.CanRead){
                     return;
                 }
-                if (stream.Read(messageSizeByte, 0, 4) == 0)
+
+                int readedBytes;
+                try
                 {
-                    _connection.closeConnection("Primljena je poruka duljine nula");
-                    break;
+                    readedBytes = stream.Read(messageSizeByte, 0, 4);
+                    if (readedBytes == 0)
+                    {
+                        _connection.closeConnection("Primljena je poruka duljine nula");
+                        break;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _connection.closeConnection("PogreŠka kod čitanja sa streama: " + ex.InnerException);
                 }
 
                 int messageSize = BitConverter.ToInt32(Convertor.ConvertToBigEndian(messageSizeByte), 0);
                 Console.WriteLine("Primio sam poruku duljine {0}", messageSize);
 
+                //hvatanje keap alive poruke
+                if (messageSize == 0)
+                    continue;
+
                 var message = new byte[messageSize];
 
-                //citanje poruke
-                if (stream.Read(message, 0, messageSize) == 0)
+                try
                 {
-                    _connection.closeConnection("Primljena je poruka duljine nula");
-                    break;
+                    readedBytes = stream.Read(message, 0, messageSize);
+                    if (readedBytes == 0)
+                    {
+                        _connection.closeConnection("Primljena je poruka duljine nula");
+                        break;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    _connection.closeConnection("PogreŠka kod čitanja sa streama: " + ex.InnerException);
                 }
 
                 //odvajanje id porke i payloada

@@ -31,10 +31,16 @@ namespace TorrentClient
         public byte[] PieceData;
         public byte[] HaveBytesInPiece;
 
-        //podaci o zahtjevanom piecu
+        public object lockerDohvacenihPodataka = new Object();
+
+        //TODO!!!!podaci o zahtjevanim piecovima, stalno se nadodaju - ako dođe choke : lista se briše :D
         public PieceSender pieceSender;
 
-        public object lockerDohvacenihPodataka = new Object();
+        public object lockerPrimljenihZahtjeva = new Object();
+
+        //koje piecove imam ja a koje peer
+        public Status[] localPiecesStatus;
+        public Status[] peerPiecesStatus;
 
         public PWPConnection(PWPClient newLocalClient)
         {
@@ -45,7 +51,10 @@ namespace TorrentClient
             HaveBytesInPiece = new byte[newLocalClient.torrentMetaInfo.Info.PieceLength];
             HaveBytesInPiece.Initialize();
 
-            pieceSender = new PieceSender(this);
+            localPiecesStatus = new Status[newLocalClient.pieceStatus.Length];
+            peerPiecesStatus = new Status[newLocalClient.pieceStatus.Length];
+            peerPiecesStatus.Initialize();
+            newLocalClient.pieceStatus.CopyTo(localPiecesStatus, 0);
         }
 
         //probaj se spojiti na peera
@@ -56,8 +65,10 @@ namespace TorrentClient
 
             IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse(peer.IpAdress), peer.Port);
 
+            try{
             client.Connect(serverEndPoint);
             peerClient = client;
+            }catch{}
 
             Console.WriteLine("Uspostavljena veza prema peeru na portu " + peer.Port);
 
@@ -83,9 +94,13 @@ namespace TorrentClient
 
             try
             {
-          //      sendMessage( new byte[] { 0, 0, 0, 1, 3 });
-                //     sendMessage( new byte[] { 0, 0, 0, 1, 1 });
-           //     sendMessage( new byte[] { 0, 0, 0, 13, 6, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 2, 0, 64, 0, 0 });
+                Random rand = new Random(231234);
+
+                Thread.Sleep(rand.Next(10000));
+
+              //  sendMessage( new byte[] { 0, 0, 0, 1, 3 });
+              //  sendMessage( new byte[] { 0, 0, 0, 1, 1 });
+              //  sendMessage( new byte[] { 0, 0, 0, 13, 6, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 2, 0, 64, 0, 0 });
             }
             catch (IOException e)
             {
@@ -103,13 +118,29 @@ namespace TorrentClient
                 //provjeri stanje zastavica :)
                 //ako je za napraviti nešto pametno - poslat zahtjev npr, pošalji ga :D  
                 
-                if(pieceSender.readyForSend){
-                    pieceSender.sendPiece();
-                    stopWatch.Restart();
+                //if(!this.connectionState.choked && this.connectionState.interested){
+                    //pošalji request  !!!!
+                //}
+                   
+                Dictionary<int, Status> changes = checkforChanges();
+                foreach(int index in changes.Keys){
+                    localPiecesStatus[index] = localClient.pieceStatus[index];
+                    if (localClient.pieceStatus[index] == Status.Ima){
+                        //pošalji have s oznakom pieca :D !!!!!!!!!!!!
+                    }
+                }
+
+
+
+                lock(pieceSender.sendPieceDataLocker){
+                    if(pieceSender.readyForSend){
+                        pieceSender.sendPiece();
+                        stopWatch.Restart();
+                    }
                 }
 
                 //ako dulje od 20 sec nije poslana nikakva poruka pošalji keepalive
-                if(stopWatch.ElapsedMilliseconds > 20000000){
+                if(stopWatch.ElapsedMilliseconds > 20000){
                     stopWatch.Stop();
                     sendMessage( new byte[]{0,0,0,0});
                 }             
@@ -142,5 +173,16 @@ namespace TorrentClient
             peerClient.Close();
         }
 
+        private Dictionary<int, Status> checkforChanges()
+        {
+            Dictionary<int, Status> changeMapping = new Dictionary<int, Status>();
+            for(int i = 0; i < localPiecesStatus.Length; i++){
+                if(localPiecesStatus[i] != localClient.pieceStatus[i]){
+                    changeMapping.Add(i, localClient.pieceStatus[i]);
+                }
+            }
+            
+             return changeMapping;
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using FairTorrent;
 using System.IO;
+using TorrentClient;
 
 namespace TorrentClient
 {
@@ -53,7 +54,7 @@ namespace TorrentClient
                 //trazenje u kojem fileu se nalazi trazeni blok
                 int offsetInTorrent = pieceIndex*torrentInfo.PieceLength + blockOffset;
 
-                int fileIndex = 0; //index filea u torrentu
+                int fileIndex = 0;          //index filea u torrentu
                 int nextFileOffset = torrentInfo.Files[0].Length;
                 while (nextFileOffset < offsetInTorrent)
                 {
@@ -119,7 +120,9 @@ namespace TorrentClient
                 }
             }
 
-            //sto napravit ako nismo uspjeli procitat podatke iz filea (totalBytesReaded != blockLength)?
+            //ako citanje nije bilo uspjesno
+            if (totalBytesReaded != blockLength)
+                _connection.closeConnection("Neuspjesno citanje podataka iz datoteke.");
 
 
             //generiranje Piece poruke
@@ -131,14 +134,14 @@ namespace TorrentClient
             byte[] pieceMessage = new byte[messageLength + 4];
 
             //prebaciti sve u byte[] i poslati - ovo je ana dodala XD
-            Buffer.BlockCopy(BitConverter.GetBytes(messageLength), 0, pieceMessage, 0, 4);
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, pieceMessage, 0, 4);
             pieceMessage[5] = (byte) messageId;
-            Buffer.BlockCopy(BitConverter.GetBytes(pieceIndex), 0, pieceMessage, 4+1, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(blockOffset), 0, pieceMessage, 4+1+4, 4);
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(pieceIndex), 0, pieceMessage, 4 + 1, 4);
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(blockOffset), 0, pieceMessage, 4 + 1 + 4, 4);
             Buffer.BlockCopy(blockData, 0, pieceMessage, 4+1+4+4, blockData.Length);
     
             //svi prepuštaju konkretno slanje poruke connectionu 
-            _connection.sendMessage( pieceMessage);
+            _connection.sendMessage(pieceMessage);
 
             readyForSend = false; 
         }

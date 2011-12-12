@@ -80,7 +80,7 @@ namespace TorrentClient
             }
             else
             {
-                Console.WriteLine("Konekcija je izgleda prekinuta");
+                _connection.closeConnection("Peer prekinuo konekciju za vrijeme handshakea!");
             }
 
         }
@@ -112,12 +112,12 @@ namespace TorrentClient
             byte[] clientName = Convertor.strToByteArrayUTF8(_connection.localClient.clientName);
             Array.ConstrainedCopy(clientName, 0, message, 48, 20);
 
-            Console.WriteLine("Poslani handshake string: ");
+           /*Console.WriteLine("Poslani handshake string: ");
             foreach (byte digit in message)
             {
                 Console.Write(digit);
             }
-            Console.WriteLine();
+            Console.WriteLine();*/
             // Console.WriteLine("Duljina stringa:"+ message.Length);
 
             return message;
@@ -142,12 +142,12 @@ namespace TorrentClient
             }
             else
             {
-                Console.WriteLine("Primljen handshake string: ");
+            /*    Console.WriteLine("Primljen handshake string: ");
                 foreach (byte digit in message)
                 {
                     Console.Write(digit);
                 }
-                Console.WriteLine();
+                Console.WriteLine();*/
             }
 
             return message;
