@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
 using FairTorrent;
+using System.IO;
 
 namespace TorrentClient
 {
@@ -42,10 +43,10 @@ namespace TorrentClient
                     uninterested();
                     break;
                 case 4:
-                    have();
+                    have(_message);
                     break;
                 case 5:
-                    bitfield();
+                    ProcessReceivedBitfield(_message);
                     break;
                 case 6:
                     ProcessReceivedRequest(_message);
@@ -62,9 +63,27 @@ namespace TorrentClient
             }
         }
 
-        private void bitfield()
+        private void ProcessReceivedBitfield(byte[] payload)
         {
-            //throw new NotImplementedException();
+            int numOfPieces = payload.Length;
+
+            if(_connection.peerPiecesStatus.Length != numOfPieces){
+                _connection.closeConnection("Peer poslao bitfield neodgovarajuce duljine!");
+            }
+
+            lock(_connection.piecesStatusLocker){
+                for (int i = 0; i < numOfPieces ; i++)
+                {
+                    if (payload[i] == 0)
+                    {
+                        _connection.peerPiecesStatus[i] = Status.Nema;
+                    }
+                    else
+                    {
+                        _connection.peerPiecesStatus[i] = Status.Ima;
+                    }
+                }
+            }
         }
 
 
@@ -94,16 +113,12 @@ namespace TorrentClient
             var blockData = new byte[blockLength];
             Buffer.BlockCopy(payload, 8, blockData, 0, blockLength);
 
-            lock(_connection.lockerDohvacenihPodataka){
-                //sprema blok u piece
-                Buffer.BlockCopy(blockData, 0, _connection.PieceData, blockOffset, blockLength);
-                //oznacava koji djelovi piecea su stigli
-                for (int i = blockOffset; i < blockLength; i++)
-                    _connection.HaveBytesInPiece[i] = 1;
-            }
+            //sprema blok u piece
+            Buffer.BlockCopy(blockData, 0, _connection.PieceData, blockOffset, blockLength);
+            //oznacava koji djelovi piecea su stigli
+            for (int i = blockOffset; i < blockLength; i++)
+                _connection.HaveBytesInPiece[i] = 1;
 
-
-            //provjera jel skupljen cijeli piece
             bool zeroFound = false;
             foreach (byte b in _connection.HaveBytesInPiece)
             {
@@ -126,10 +141,10 @@ namespace TorrentClient
                     lock(_connection.localClient.lockerStatusaDjelova){
                         _connection.localClient.pieceStatus[pieceIndex] = Status.Ima;
                     }
-                    
 
-                    //spremi ga u datoteku -- isto kao za citanje u sendPiece
-                    //TODO!!! (prilikom spremanja paziti na hijerarhiju direktorija)
+                    StorePiece(pieceIndex, _connection.PieceData);
+
+                    //TODO resetirati oznake kaj imamo ?
                 }
                 else
                 {
@@ -137,6 +152,89 @@ namespace TorrentClient
                     //upisi da piece nije primljen
                     _connection.PieceData.Initialize();
                     _connection.HaveBytesInPiece.Initialize();
+                }
+            }
+        }
+
+        private void StorePiece(int pieceIndex, byte[] piece)
+        {
+
+            //provjera da li je jedan ili vise fileova u torrentu
+            if (_connection.localClient.torrentMetaInfo.Info.GetType().Equals(typeof(SingleFileTorrentInfo)))
+            {
+                var torrentInfo = (SingleFileTorrentInfo)_torrent.Info;
+                int pieceLength = torrentInfo.PieceLength;
+
+                var fileInfo = new System.IO.FileInfo(torrentInfo.File.Path);
+                FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
+
+                int writingOffset = pieceIndex * pieceLength;
+                fileStream.Write(piece, writingOffset, pieceLength);
+            }
+            else
+            {
+                var torrentInfo = (MultiFileTorrentInfo)_torrent.Info;
+                int pieceLength = torrentInfo.PieceLength;
+
+                //trazenje u kojem fileu se nalazi trazeni piece
+                int offsetInTorrent = pieceIndex * pieceLength;
+
+                int fileIndex = 0; //index filea u torrentu
+                int nextFileOffset = torrentInfo.Files[0].Length;
+                while (nextFileOffset < offsetInTorrent)
+                {
+                    fileIndex++;
+                    nextFileOffset += torrentInfo.Files[fileIndex].Length;
+                }
+
+                int fileOffset = nextFileOffset - torrentInfo.Files[fileIndex].Length;
+
+
+                //provjera da li je piece iz jednog filea ili iz vise njih
+                if (nextFileOffset > offsetInTorrent + pieceLength)
+                {
+                    //piece je iz jednog filea
+
+                    var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
+                    FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
+
+                    int writingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
+
+                    fileStream.Read(piece, writingOffset, pieceLength);
+                }
+                else
+                {
+                    //piece je iz vise fileova
+
+                    //granice od kud do kud se cita iz kojeg filea
+                    int startRadingOffset = offsetInTorrent - fileOffset;
+                    int endReadingOffset = nextFileOffset;
+                    while (fileOffset < offsetInTorrent + pieceLength)
+                    {
+                        //citanje iz filea
+                        int bytesToWrite = endReadingOffset - startRadingOffset;
+                        var tempBuffer = new byte[bytesToWrite];
+
+                        var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
+                        FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
+
+                        fileStream.Read(tempBuffer, startRadingOffset, bytesToWrite);
+
+                        //priprema za pisanje u  slijedeci file
+                        fileIndex++;
+                        fileOffset = nextFileOffset;
+                        nextFileOffset += torrentInfo.Files[fileIndex].Length;
+
+                        startRadingOffset = endReadingOffset;
+                        if (nextFileOffset < offsetInTorrent + pieceLength)
+                        {
+                            endReadingOffset = nextFileOffset;
+                        }
+                        else
+                        {
+                            endReadingOffset = offsetInTorrent + pieceLength;
+                        }
+                    }
                 }
             }
         }
@@ -165,23 +263,15 @@ namespace TorrentClient
 
             if (blockLength < Math.Pow(2, 17))
             {
-                bool senderBussy;
-                while(true){
 
-                    lock (_connection.pieceSender.sendPieceDataLocker)
-                    {
-                        senderBussy = _connection.pieceSender.readyForSend;
-                    }
-                    if (!senderBussy)
-                    {
-                        break;
-                    }
+                PieceSender pieceSender = new PieceSender(_connection);
+                pieceSender.pieceIndex = pieceIndex;
+                pieceSender.blockOffset = blockOffset;
+                pieceSender.blockLength = blockLength;  
+                
+                lock(_connection.pieceSenderLocker){
+                    _connection.pieceSendingQueue.Enqueue(pieceSender);
                 }
-
-                 _connection.pieceSender.pieceIndex = pieceIndex;
-                 _connection.pieceSender.blockOffset = blockOffset;
-                 _connection.pieceSender.blockLength = blockLength;
-                 _connection.pieceSender.readyForSend = true;
             }
             else
             {
@@ -190,9 +280,18 @@ namespace TorrentClient
 
         }
 
-        private void have()
+        private void have(byte[] payload)
         {
-            //throw new NotImplementedException();
+            //payload je index piecea
+            int pieceIndex = BitConverter.ToInt32(Convertor.ConvertToBigEndian(payload), 0);
+
+            lock(_connection.piecesStatusLocker){
+                _connection.peerPiecesStatus[pieceIndex] = Status.Ima;
+            }
+
+            //nisam sigurna da kod ispod nije potreban
+            //Status[] hisStatus = _connection.peerPiecesStatus;
+            //hisStatus[pieceIndex] = Status.Ima;
         }
 
         private void uninterested()

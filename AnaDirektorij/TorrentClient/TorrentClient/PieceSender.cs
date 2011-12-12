@@ -18,15 +18,10 @@ namespace TorrentClient
         public int blockOffset;
         public int blockLength;
 
-        public bool readyForSend;
-
-        public object sendPieceDataLocker = new Object();
-
         public PieceSender(PWPConnection connection)
         {
             _connection = connection;
-            _torrent = _connection.localClient.torrentMetaInfo;   
-            readyForSend = false;     
+            _torrent = _connection.localClient.torrentMetaInfo;     
         }
 
         public void sendPiece()
@@ -40,7 +35,7 @@ namespace TorrentClient
             {
                 var torrentInfo = (SingleFileTorrentInfo) _torrent.Info;
 
-                var fileInfo = new System.IO.FileInfo(torrentInfo.File.Path);
+                var fileInfo = new System.IO.FileInfo("resources\\"+torrentInfo.File.Path);
                 FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
 
                 int readingOffset = pieceIndex*torrentInfo.PieceLength + blockOffset;
@@ -143,7 +138,6 @@ namespace TorrentClient
             //svi prepuštaju konkretno slanje poruke connectionu 
             _connection.sendMessage(pieceMessage);
 
-            readyForSend = false; 
         }
     }
 }
