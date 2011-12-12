@@ -153,6 +153,8 @@ namespace TorrentClient
                     {
                         _connection.localClient.pieceStatus[pieceIndex] = Status.Ima;
                     }
+
+                    logPieceRecival(pieceIndex);
                 }
                 else
                 {
@@ -274,6 +276,16 @@ namespace TorrentClient
                         }
                     }
                 }
+            }
+        }
+
+        private void logPieceRecival(int pieceIndex){
+            try{
+                TextWriter logWriter = new StreamWriter(_connection.localClient.logFilePath);
+                logWriter.WriteLine(pieceIndex.ToString());
+                logWriter.Close();
+            }catch{
+                //ozbiljni problemi! ovo bolje da se ne dogodi
             }
         }
 

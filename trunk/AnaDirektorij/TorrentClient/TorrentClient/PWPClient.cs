@@ -7,6 +7,7 @@ using System.Threading;
 using System.Net;
 using System.Security.Cryptography;
 using FairTorrent;
+using System.IO;
 
 namespace TorrentClient
 {
@@ -22,7 +23,7 @@ namespace TorrentClient
 
         private int localPort;
 
-        private const int maxConnections = 1;
+        private const int maxConnections = 40;
         public int numConnections;
 
         public object lockerBrojaKonekcija = new Object();
@@ -33,7 +34,9 @@ namespace TorrentClient
         public Status[] pieceStatus;
         public object lockerStatusaDjelova = new Object();
 
-        public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes, Status[] imaFajlove)
+        public string logFilePath;
+
+        public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes, string logFilePath)
         {
             this.localPort = port;
             this.clientName = name;
@@ -41,8 +44,10 @@ namespace TorrentClient
             this.infoBytes = infoBytes;
             this.numConnections = 0;
 
+            this.logFilePath = logFilePath;
             this.pieceStatus = new Status[this.torrentMetaInfo.Info.Pieces.Length/20];
-            this.pieceStatus = imaFajlove;
+
+            this.pieceStatus = readLogFile();
 
             this.tcpListener = new TcpListener(IPAddress.Any, localPort);
             this.listenThread = new Thread(new ThreadStart(ListenForClients));
@@ -86,6 +91,27 @@ namespace TorrentClient
                 peerConection.Start(peer);
 
             }         
+        }
+
+        private Status[] readLogFile(){
+            Status[] piecesStates = new Status[this.torrentMetaInfo.Info.Pieces.Length / 20];
+            piecesStates.Initialize();
+
+            try{
+                TextReader logReader = new StreamReader(this.logFilePath);
+                while(true){
+                    string line = logReader.ReadLine();
+
+                    if(line == null) break;
+
+                    int pieceIndex = Int32.Parse(line);
+
+                    piecesStates[pieceIndex] = Status.Ima;
+                }
+                logReader.Close();
+            }catch{} //ako se dogodi greška prilikom čitanja datoteke, file se skida iz početka
+
+            return piecesStates;
         }
 
         //metoda koja prihvaća zahtjeve za kojekcijama od peerova
