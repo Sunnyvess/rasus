@@ -105,7 +105,7 @@ namespace TorrentClient
             int pieceIndex = BitConverter.ToInt32(Convertor.ConvertToBigEndian(pieceIndexInBytes), 0);
 
             var blockOffsetInBytes = new byte[4];
-            Buffer.BlockCopy(payload, 0, blockOffsetInBytes, 0, 4);
+            Buffer.BlockCopy(payload, 4, blockOffsetInBytes, 0, 4);
             int blockOffset = BitConverter.ToInt32(Convertor.ConvertToBigEndian(blockOffsetInBytes), 0);
 
             int blockLength = payload.Length - 8;
@@ -113,16 +113,21 @@ namespace TorrentClient
             var blockData = new byte[blockLength];
             Buffer.BlockCopy(payload, 8, blockData, 0, blockLength);
 
-            //sprema blok u piece
-            Buffer.BlockCopy(blockData, 0, _connection.PieceData, blockOffset, blockLength);
-            //oznacava koji djelovi piecea su stigli
-            for (int i = blockOffset; i < blockLength; i++)
-                _connection.HaveBytesInPiece[i] = 1;
+            bool zeroFound;
+            lock(_connection.lockerDohvacenihPodataka){
+                //sprema blok u piece
+                Buffer.BlockCopy(blockData, 0, _connection.PieceData, blockOffset, blockLength);
+                //oznacava koji djelovi piecea su stigli
+                for (int i = 0 ; i < blockLength; i++)
+                    _connection.HaveBytesInPiece[i + blockOffset] = 1;
 
-            bool zeroFound = false;
-            foreach (byte b in _connection.HaveBytesInPiece)
-            {
-                if (b == 0) zeroFound = true;
+                zeroFound = false;
+
+                foreach (byte b in _connection.HaveBytesInPiece)
+                {
+                    if (b == 0) zeroFound = true;
+                }
+
             }
 
             if (!zeroFound)
@@ -132,24 +137,34 @@ namespace TorrentClient
                 //provjera da li je piece dobar
                 SHA1 sha1 = new SHA1Managed();
                 byte[] recievedPieceHash = sha1.ComputeHash(_connection.PieceData);
-                var pieceHash = new byte[20];
-                Buffer.BlockCopy(_torrent.Info.Pieces, 20 * pieceIndex, pieceHash, 0, 20);
-                if (recievedPieceHash.Equals(pieceHash))
+
+                var localPieceHash = new byte[20];
+                Buffer.BlockCopy(_torrent.Info.Pieces, 20 * pieceIndex, localPieceHash, 0, 20);
+
+                bool areEqual = localPieceHash.SequenceEqual(recievedPieceHash);
+
+                if (areEqual)
                 {
                     //skinuti piece je dobar
-                    //upisi da je piece primljen
-                    lock(_connection.localClient.lockerStatusaDjelova){
-                        _connection.localClient.pieceStatus[pieceIndex] = Status.Ima;
-                    }
-
                     StorePiece(pieceIndex, _connection.PieceData);
 
-                    //TODO resetirati oznake kaj imamo ?
+                    //upisi da je piece primljen
+                    lock (_connection.localClient.lockerStatusaDjelova)
+                    {
+                        _connection.localClient.pieceStatus[pieceIndex] = Status.Ima;
+                    }
                 }
                 else
                 {
-                    //piece nije dobar
-                    //upisi da piece nije primljen
+                    //piece nije dobar - odustajemo od skidanja za sada
+                    lock(_connection.localClient.lockerStatusaDjelova){
+                        _connection.localClient.pieceStatus[pieceIndex] = Status.Nema;
+                    }      
+                }
+
+                //nakon primljenog citavog paketa, bio on ispravan ili ne pocinjemo ispocetka
+                lock (_connection.lockerDohvacenihPodataka)
+                {
                     _connection.PieceData.Initialize();
                     _connection.HaveBytesInPiece.Initialize();
                 }
@@ -169,7 +184,14 @@ namespace TorrentClient
                 FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
 
                 int writingOffset = pieceIndex * pieceLength;
-                fileStream.Write(piece, writingOffset, pieceLength);
+
+                try{
+                    fileStream.Seek(writingOffset, SeekOrigin.Begin);
+                    fileStream.Write(piece, 0, pieceLength);
+                }
+                finally{
+                    fileStream.Close();
+                }
             }
             else
             {
@@ -200,39 +222,55 @@ namespace TorrentClient
 
                     int writingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
 
-                    fileStream.Read(piece, writingOffset, pieceLength);
+                    try
+                    {
+                        fileStream.Seek(writingOffset, SeekOrigin.Begin);
+                        fileStream.Write(piece, 0, pieceLength);
+                    }
+                    finally
+                    {
+                        fileStream.Close();
+                    }
                 }
                 else
                 {
                     //piece je iz vise fileova
 
-                    //granice od kud do kud se cita iz kojeg filea
-                    int startRadingOffset = offsetInTorrent - fileOffset;
-                    int endReadingOffset = nextFileOffset;
+                    //granice od kud do kud se pise u koji file
+                    int startWritingOffset = offsetInTorrent - fileOffset;
+                    int endWritingOffset = nextFileOffset;
                     while (fileOffset < offsetInTorrent + pieceLength)
                     {
                         //citanje iz filea
-                        int bytesToWrite = endReadingOffset - startRadingOffset;
+                        int bytesToWrite = endWritingOffset - startWritingOffset;
                         var tempBuffer = new byte[bytesToWrite];
 
                         var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
                         FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
 
-                        fileStream.Read(tempBuffer, startRadingOffset, bytesToWrite);
+                        try
+                        {
+                            fileStream.Seek(startWritingOffset, SeekOrigin.Begin);
+                            fileStream.Write(tempBuffer, 0, bytesToWrite);
+                        }
+                        finally
+                        {
+                            fileStream.Close();
+                        }
 
                         //priprema za pisanje u  slijedeci file
                         fileIndex++;
                         fileOffset = nextFileOffset;
                         nextFileOffset += torrentInfo.Files[fileIndex].Length;
 
-                        startRadingOffset = endReadingOffset;
+                        startWritingOffset = endWritingOffset;
                         if (nextFileOffset < offsetInTorrent + pieceLength)
                         {
-                            endReadingOffset = nextFileOffset;
+                            endWritingOffset = nextFileOffset;
                         }
                         else
                         {
-                            endReadingOffset = offsetInTorrent + pieceLength;
+                            endWritingOffset = offsetInTorrent + pieceLength;
                         }
                     }
                 }
@@ -254,11 +292,11 @@ namespace TorrentClient
             int pieceIndex = BitConverter.ToInt32(Convertor.ConvertToBigEndian(pieceIndexInBytes), 0);
 
             var blockOffsetInBytes = new byte[4];
-            Buffer.BlockCopy(payload, 0, blockOffsetInBytes, 0, 4);
+            Buffer.BlockCopy(payload, 4, blockOffsetInBytes, 0, 4);
             int blockOffset = BitConverter.ToInt32(Convertor.ConvertToBigEndian(blockOffsetInBytes), 0);
 
             var blockLengthInBytes = new byte[4];
-            Buffer.BlockCopy(payload, 0, blockLengthInBytes, 0, 4);
+            Buffer.BlockCopy(payload, 8, blockLengthInBytes, 0, 4);
             int blockLength = BitConverter.ToInt32(Convertor.ConvertToBigEndian(blockLengthInBytes), 0);
 
             if (blockLength < Math.Pow(2, 17))

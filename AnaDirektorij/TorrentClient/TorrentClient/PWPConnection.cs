@@ -135,15 +135,16 @@ namespace TorrentClient
                 lock(pieceSenderLocker){
 
                     while(true){
+                        PieceSender sender;
                         try{
-
-                        PieceSender sender = pieceSendingQueue.Dequeue();
-                        sender.sendPiece();
+                        sender = pieceSendingQueue.Dequeue();
 
                         }
                         catch{
                             break;
                         }
+
+                        sender.sendPiece();
                     }
                 }
 
@@ -162,9 +163,14 @@ namespace TorrentClient
         //posalji peeru poruku
         public void sendMessage(byte[] message){
             
-            this.clientStream.Write(message, 0, message.Length);
-            this.clientStream.Flush();
-            
+            try{
+                this.clientStream.Write(message, 0, message.Length);
+                this.clientStream.Flush();
+
+                if(message.Length > 4){
+                    Console.WriteLine("Poslana poruka s id-jem: "+message[4]);
+                }
+            }catch{}    
         }
 
         //zatvaranje konekcije prema peeru - smanjenje broja konekcija, micanje peera iz aktivnih peerova

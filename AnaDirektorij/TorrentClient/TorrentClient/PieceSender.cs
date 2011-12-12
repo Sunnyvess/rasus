@@ -39,7 +39,13 @@ namespace TorrentClient
                 FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
 
                 int readingOffset = pieceIndex*torrentInfo.PieceLength + blockOffset;
-                totalBytesReaded = fileStream.Read(buffer, readingOffset, blockLength);
+                try{
+                    fileStream.Seek(readingOffset, SeekOrigin.Begin);
+                    totalBytesReaded = fileStream.Read(buffer, 0, blockLength);
+                }
+                finally{
+                    fileStream.Close();
+                }
             }
             else
             {
@@ -70,7 +76,13 @@ namespace TorrentClient
 
                     int readingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
 
-                    totalBytesReaded = fileStream.Read(buffer, readingOffset, blockLength);
+                    try{
+                        fileStream.Seek(readingOffset, SeekOrigin.Begin);
+                        totalBytesReaded = fileStream.Read(buffer, 0, blockLength);
+                    }
+                    finally{
+                        fileStream.Close();
+                    }
                 }
                 else
                 {
@@ -89,8 +101,15 @@ namespace TorrentClient
                         var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
                         FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
 
-                        int bytesReaded = fileStream.Read(tempBuffer, startRadingOffset, bytesToRead);
-
+                        int bytesReaded;
+                        try{
+                            fileStream.Seek(startRadingOffset, SeekOrigin.Begin);
+                            bytesReaded = fileStream.Read(tempBuffer, 0, bytesToRead);
+                        }
+                        finally{
+                            fileStream.Close();
+                        }
+                        
                         //spajanje do sada procitanog
                         Buffer.BlockCopy(tempBuffer, 0, buffer, totalBytesReaded, bytesReaded);
                         totalBytesReaded += bytesReaded;
@@ -110,8 +129,6 @@ namespace TorrentClient
                             endReadingOffset = offsetInTorrent + blockLength;
                         }
                     }
-
-
                 }
             }
 
@@ -130,7 +147,7 @@ namespace TorrentClient
 
             //prebaciti sve u byte[] i poslati - ovo je ana dodala XD
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, pieceMessage, 0, 4);
-            pieceMessage[5] = (byte) messageId;
+            pieceMessage[4] = (byte) messageId;
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(pieceIndex), 0, pieceMessage, 4 + 1, 4);
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(blockOffset), 0, pieceMessage, 4 + 1 + 4, 4);
             Buffer.BlockCopy(blockData, 0, pieceMessage, 4+1+4+4, blockData.Length);

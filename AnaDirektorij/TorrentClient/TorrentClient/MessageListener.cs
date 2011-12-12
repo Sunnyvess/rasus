@@ -47,7 +47,7 @@ namespace MessageCommunication
                 }
                 catch(Exception ex)
                 {
-                    _connection.closeConnection("PogreŠka kod čitanja sa streama: " + ex.InnerException);
+                    _connection.closeConnection("PogreŠka kod čitanja sa streama");
                 }
 
                 int messageSize = BitConverter.ToInt32(Convertor.ConvertToBigEndian(messageSizeByte), 0);
@@ -71,7 +71,7 @@ namespace MessageCommunication
                 }
                 catch (Exception ex)
                 {
-                    _connection.closeConnection("PogreŠka kod čitanja sa streama: " + ex.InnerException);
+                    _connection.closeConnection("PogreŠka kod čitanja sa streama");
                 }
 
                 //odvajanje id porke i payloada

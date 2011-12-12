@@ -56,8 +56,9 @@ namespace TorrentClient
             //izgled request poruke:
             //MessageLength(4) + MessageId(1) + PieceIndex(4) + BlockOffset(4) + BlockLength(4)
 
+            //provjeri jel smo već u procesu skidanja nekog pieca :)
+            //ako jesmo, šibaj s njim dalje, ako nismo traži novi
 
-            //TODO: dodaj lock za pristupanje statusima
             int numOfPieces = myStatus.Length;
             int pieceLength = connection.localClient.torrentMetaInfo.Info.PieceLength;
             NetworkStream stream = connection.clientStream;
@@ -67,6 +68,8 @@ namespace TorrentClient
             Random rand = new Random();
             int firstIndex = rand.Next(numOfPieces);
             int index = firstIndex;
+
+            //cijela metoda se poziva pod lockom nad statusima
             while (!(myStatus[index] == Status.Nema && hisStatus[index] == Status.Ima))
             {
                 index = (index + 1) % numOfPieces;
@@ -78,11 +81,18 @@ namespace TorrentClient
                 }
             }
 
+            //označi da si si bezeciral piece :D
+            lock(connection.localClient.lockerStatusaDjelova){
+                connection.localClient.pieceStatus[index] = Status.Skidanje;
+            }
+ 
             int messageLength = 13;
             int messageId = 6;
             int pieceIndex = index;
+
             //TODO: int blockLength = client.lockLength;
-            int blockLength = (int)Math.Pow(2, 14);
+
+            int blockLength = (int)Math.Pow(2, 14); // ne ako je i zadnji!! paziti!
             var message = new byte[messageLength + 4];
 
             int blockOffset = 0;
@@ -90,7 +100,7 @@ namespace TorrentClient
             {
                 //generiraj poruku
                 Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
-                Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageId), 0, message, 4, 1);
+                message[4]= (byte) messageId;
                 Buffer.BlockCopy(Convertor.ConvertIntToBytes(pieceIndex), 0, message, 5, 4);
                 Buffer.BlockCopy(Convertor.ConvertIntToBytes(blockOffset), 0, message, 9, 4);
                 Buffer.BlockCopy(Convertor.ConvertIntToBytes(blockLength), 0, message, 13, 4);
@@ -101,11 +111,11 @@ namespace TorrentClient
                 blockOffset += blockLength;
             }
 
-            //izracunaj blockLength
+            //izracunaj blockLength zadnji!
             blockLength = pieceLength - blockOffset;
             //generiraj poruku
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
-            Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageId), 0, message, 4, 1);
+            message[4] = (byte)messageId;
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(pieceIndex), 0, message, 5, 4);
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(blockOffset), 0, message, 9, 4);
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(blockLength), 0, message, 13, 4);
