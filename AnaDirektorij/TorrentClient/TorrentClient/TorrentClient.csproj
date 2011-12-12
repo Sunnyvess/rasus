@@ -75,6 +75,7 @@
     </Compile>
     <Compile Include="MessageHandler.cs" />
     <Compile Include="MessageListener.cs" />
+    <Compile Include="PieceSender.cs" />
     <Compile Include="TestiranjeKlijenta.cs" />
     <Compile Include="Peer.cs" />
     <Compile Include="PWPClient.cs" />

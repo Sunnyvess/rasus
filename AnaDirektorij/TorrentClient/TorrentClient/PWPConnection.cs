@@ -18,13 +18,34 @@ namespace TorrentClient
     {
 
         public PWPClient localClient; //ja
+
         public TcpClient peerClient;  // onaj drugi
+        public NetworkStream clientStream;
 
         public string peerName; // ime onog s druge strane veze
+
+        //zastavice - stanje veze
+        public ConnectionStatus connectionState;
+
+        //dosada dohvaćeni djelovi piecea
+        public byte[] PieceData;
+        public byte[] HaveBytesInPiece;
+
+        //podaci o zahtjevanom piecu
+        public PieceSender pieceSender;
+
+        public object lockerDohvacenihPodataka = new Object();
 
         public PWPConnection(PWPClient newLocalClient)
         {
             this.localClient = newLocalClient;
+            this.connectionState = new ConnectionStatus();
+
+            PieceData = new byte[newLocalClient.torrentMetaInfo.Info.PieceLength];
+            HaveBytesInPiece = new byte[newLocalClient.torrentMetaInfo.Info.PieceLength];
+            HaveBytesInPiece.Initialize();
+
+            pieceSender = new PieceSender(this);
         }
 
         //probaj se spojiti na peera
@@ -52,7 +73,7 @@ namespace TorrentClient
         //slanje i primanje poruka - dok nije cijeli file prenesen ? (ko na kraju prekida vezu?)
         public void HandleClientComm(TcpClient tcpClient)
         {
-            NetworkStream clientStream = tcpClient.GetStream();
+            this.clientStream = tcpClient.GetStream();
 
             MessageListener messageListener = new MessageListener(this);
             Thread messageListenerThread = new Thread(new ParameterizedThreadStart(messageListener.Listen));
@@ -62,9 +83,9 @@ namespace TorrentClient
 
             try
             {
-          //      sendMessage(clientStream, new byte[] { 0, 0, 0, 1, 3 });
-                //     sendMessage(clientStream, new byte[] { 0, 0, 0, 1, 1 });
-           //     sendMessage(clientStream, new byte[] { 0, 0, 0, 13, 6, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 2, 0, 64, 0, 0 });
+          //      sendMessage( new byte[] { 0, 0, 0, 1, 3 });
+                //     sendMessage( new byte[] { 0, 0, 0, 1, 1 });
+           //     sendMessage( new byte[] { 0, 0, 0, 13, 6, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 2, 0, 64, 0, 0 });
             }
             catch (IOException e)
             {
@@ -75,15 +96,23 @@ namespace TorrentClient
             stopWatch.Start();
            while (true)
             {
-
-                if(stopWatch.ElapsedMilliseconds > 10000000){
-                //ako dulje od 10 sec nije poslana nikakva poruka pošalji keepalive
-                    stopWatch.Stop();
-                    sendMessage(clientStream, new byte[]{0,0,0,0});
+                if (!peerClient.Connected)
+                {
+                    break;
                 }
                 //provjeri stanje zastavica :)
+                //ako je za napraviti nešto pametno - poslat zahtjev npr, pošalji ga :D  
+                
+                if(pieceSender.readyForSend){
+                    pieceSender.sendPiece();
+                    stopWatch.Restart();
+                }
 
-                //ako je za napraviti nešto pametno - poslat zahtjev npr, pošalji ga :D    
+                //ako dulje od 20 sec nije poslana nikakva poruka pošalji keepalive
+                if(stopWatch.ElapsedMilliseconds > 20000000){
+                    stopWatch.Stop();
+                    sendMessage( new byte[]{0,0,0,0});
+                }             
             }
 
             messageListenerThread.Join();
@@ -92,10 +121,10 @@ namespace TorrentClient
 
 
         //posalji peeru poruku
-        private void sendMessage(NetworkStream stream, byte[] message){
+        public void sendMessage(byte[] message){
             
-            stream.Write(message, 0, message.Length);
-            stream.Flush();
+            this.clientStream.Write(message, 0, message.Length);
+            this.clientStream.Flush();
             
         }
 
