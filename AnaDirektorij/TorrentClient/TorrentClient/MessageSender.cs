@@ -90,9 +90,9 @@ namespace TorrentClient
             int messageId = 6;
             int pieceIndex = index;
 
-            //TODO: int blockLength = client.lockLength;
+            //TODO: int blockLength = client.lockLength; //ani nije jasno kaj ovo znaci, samo da se duljina bloka uzima izvana?
 
-            int blockLength = (int)Math.Pow(2, 14); // ne ako je i zadnji!! paziti!
+            int blockLength = (int)Math.Pow(2, 14); 
             var message = new byte[messageLength + 4];
 
             int blockOffset = 0;
