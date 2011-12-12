@@ -112,7 +112,8 @@ namespace TorrentClient
                     //with connected client
 
                     PWPConnection pwpConnection = new PWPConnection(this);
-                    Thread clientThread = new Thread(new ParameterizedThreadStart(pwpConnection.ListenForHandshake));
+                    Handshaker handshaker = new Handshaker (pwpConnection);
+                    Thread clientThread = new Thread(new ParameterizedThreadStart(handshaker.ListenForHandshake));
                     clientThread.Start(client);
                 }
             }

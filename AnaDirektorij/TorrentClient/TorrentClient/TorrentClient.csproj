@@ -69,9 +69,12 @@
     </Compile>
     <Compile Include="ConnectionStatus.cs" />
     <Compile Include="Convertor.cs" />
+    <Compile Include="Handshaker.cs" />
     <Compile Include="InfoExtractor.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MessageHandler.cs" />
+    <Compile Include="MessageListener.cs" />
     <Compile Include="TestiranjeKlijenta.cs" />
     <Compile Include="Peer.cs" />
     <Compile Include="PWPClient.cs" />
