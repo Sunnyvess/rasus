@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackerCommunication", "TrackerCommunication\TrackerCommunication.csproj", "{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bencoder", "..\TorrentClient\Bencoder\Bencoder\Bencoder.csproj", "{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}"
+EndProject
+Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Debug|x86.ActiveCfg = Debug|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Debug|x86.Build.0 = Debug|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Release|Any CPU.ActiveCfg = Release|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Release|Mixed Platforms.Build.0 = Release|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Release|x86.ActiveCfg = Release|x86
+		{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}.Release|x86.Build.0 = Release|x86
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
