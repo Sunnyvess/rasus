@@ -36,6 +36,13 @@ namespace TorrentClient
         {
             System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
             return encoding.GetString(array, startIndex, length);
-        } 
+        }
+
+        public static byte[] ConvertToBigEndian(byte[] array)
+        {
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(array);
+            return array;
+        }
     }
 }
