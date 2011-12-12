@@ -22,7 +22,7 @@ namespace MessageCommunication
             while(true){
                 var stream = (NetworkStream) _stream;
                 if (stream.CanTimeout)
-                    stream.ReadTimeout = 2 * 60 * 1000; //ceka dvije sekunde
+                    stream.ReadTimeout = 2 * 60 * 1000; //ceka dvije minute
                 
                 //izgled poruke => duljina poruke(4 bajta) + id poruke(4 bajta) + payload
 

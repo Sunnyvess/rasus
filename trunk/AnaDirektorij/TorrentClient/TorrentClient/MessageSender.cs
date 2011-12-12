@@ -9,7 +9,49 @@ namespace TorrentClient
     //za generiranje svih poruka osim piecea
     class MessageSender
     {
-        public void SendReqzest(Status[] myStatus, Status[] hisStatus, PWPConnection connection)
+
+        public static void SendHave(int pieceIndex, PWPConnection connection)
+        {
+            //MessageLength(4) + MessageId(1) + PieceIndex(4)
+            int messageLength = 1 + 4;
+            byte messageId = 4;
+            var message = new byte[messageLength + 4];
+
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
+            message[4] = messageId;
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(pieceIndex), 0, message, 5, 4);
+        }
+
+        public static void SendBitField(Status[] myStatus, PWPConnection connection)
+        {
+            //MessageLength(4) + MessageId(1) + StatusList
+            int numOfPieces = myStatus.Length;
+            var statusList = new byte[numOfPieces];
+
+            for (int i = 0; i < numOfPieces; i++)
+            {
+                if (myStatus[i] == Status.Ima)
+                {
+                    statusList[i] = 1;
+                }
+                else 
+                {
+                    statusList[i] = 0;
+                }
+            }
+
+            byte messageId = (byte) 5;
+            int messageLength = 1 + numOfPieces;
+            var message = new byte[messageLength + 4];
+            
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
+            message[4] = messageId;
+            Buffer.BlockCopy(statusList, 0, message, 5, numOfPieces);
+
+            connection.sendMessage(message);
+        }
+        
+        public static void SendRequest(Status[] myStatus, Status[] hisStatus, PWPConnection connection)
         {
             //izgled request poruke:
             //MessageLength(4) + MessageId(1) + PieceIndex(4) + BlockOffset(4) + BlockLength(4)
@@ -30,9 +72,9 @@ namespace TorrentClient
                 index = (index + 1) % numOfPieces;
                 
                 //nije potrebno al nek ima
-                if (index == firstIndex - 1)
+                if (index == firstIndex )
                 {
-                    break;
+                    return;
                 }
             }
 

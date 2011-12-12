@@ -33,7 +33,7 @@ namespace TorrentClient
         public Status[] pieceStatus;
         public object lockerStatusaDjelova = new Object();
 
-        public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes)
+        public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes, Status[] imaFajlove)
         {
             this.localPort = port;
             this.clientName = name;
@@ -42,6 +42,7 @@ namespace TorrentClient
             this.numConnections = 0;
 
             this.pieceStatus = new Status[this.torrentMetaInfo.Info.Pieces.Length/20];
+            this.pieceStatus = imaFajlove;
 
             this.tcpListener = new TcpListener(IPAddress.Any, localPort);
             this.listenThread = new Thread(new ThreadStart(ListenForClients));

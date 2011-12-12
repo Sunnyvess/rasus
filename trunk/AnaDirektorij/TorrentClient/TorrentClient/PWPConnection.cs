@@ -34,13 +34,16 @@ namespace TorrentClient
         public object lockerDohvacenihPodataka = new Object();
 
         //TODO!!!!podaci o zahtjevanim piecovima, stalno se nadodaju - ako dođe choke : lista se briše :D
-        public PieceSender pieceSender;
+        public Queue<PieceSender> pieceSendingQueue;
 
-        public object lockerPrimljenihZahtjeva = new Object();
+        public object pieceSenderLocker = new Object();
 
         //koje piecove imam ja a koje peer
         public Status[] localPiecesStatus;
         public Status[] peerPiecesStatus;
+
+        //jer jedna dretva handla pristigle poruke a druga provjerava kaj sve imamo
+        public object piecesStatusLocker = new Object();
 
         public PWPConnection(PWPClient newLocalClient)
         {
@@ -50,6 +53,8 @@ namespace TorrentClient
             PieceData = new byte[newLocalClient.torrentMetaInfo.Info.PieceLength];
             HaveBytesInPiece = new byte[newLocalClient.torrentMetaInfo.Info.PieceLength];
             HaveBytesInPiece.Initialize();
+
+            pieceSendingQueue = new Queue<PieceSender>();
 
             localPiecesStatus = new Status[newLocalClient.pieceStatus.Length];
             peerPiecesStatus = new Status[newLocalClient.pieceStatus.Length];
@@ -90,59 +95,62 @@ namespace TorrentClient
             Thread messageListenerThread = new Thread(new ParameterizedThreadStart(messageListener.Listen));
             messageListenerThread.Start(clientStream);
 
-            Console.WriteLine("Radimo nešto korisno zajedno!");
+            //Console.WriteLine("Radimo nešto korisno zajedno!");
 
-            try
-            {
-                Random rand = new Random(231234);
-
-                Thread.Sleep(rand.Next(10000));
-
-              //  sendMessage( new byte[] { 0, 0, 0, 1, 3 });
-              //  sendMessage( new byte[] { 0, 0, 0, 1, 1 });
-              //  sendMessage( new byte[] { 0, 0, 0, 13, 6, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 2, 0, 64, 0, 0 });
-            }
-            catch (IOException e)
-            {
-                closeConnection("Tokom izmjene poruka, peer je prekinuo vezu.");
+            lock(localClient.lockerStatusaDjelova){
+                MessageSender.SendBitField(localClient.pieceStatus, this);
             }
 
+            //za slanje keepalive poruka ako ništa nije poslano neko vrijeme
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-           while (true)
+
+            while (true)
             {
                 if (!peerClient.Connected)
                 {
                     break;
                 }
-                //provjeri stanje zastavica :)
-                //ako je za napraviti nešto pametno - poslat zahtjev npr, pošalji ga :D  
-                
-                //if(!this.connectionState.choked && this.connectionState.interested){
-                    //pošalji request  !!!!
-                //}
-                   
+
                 Dictionary<int, Status> changes = checkforChanges();
-                foreach(int index in changes.Keys){
+                foreach (int index in changes.Keys)
+                {
                     localPiecesStatus[index] = localClient.pieceStatus[index];
-                    if (localClient.pieceStatus[index] == Status.Ima){
-                        //pošalji have s oznakom pieca :D !!!!!!!!!!!!
+                    if (localClient.pieceStatus[index] == Status.Ima)
+                    {
+                        MessageSender.SendHave(index, this);
                     }
                 }
+                
+                //ovo smislit po nekom algoritmu!
+                //if(!this.connectionState.choked && this.connectionState.interested){
 
+                    lock(piecesStatusLocker){
 
+                        MessageSender.SendRequest(this.localPiecesStatus, this.peerPiecesStatus, this);
+                    }
+                //}
+                   
 
-                lock(pieceSender.sendPieceDataLocker){
-                    if(pieceSender.readyForSend){
-                        pieceSender.sendPiece();
-                        stopWatch.Restart();
+                lock(pieceSenderLocker){
+
+                    while(true){
+                        try{
+
+                        PieceSender sender = pieceSendingQueue.Dequeue();
+                        sender.sendPiece();
+
+                        }
+                        catch{
+                            break;
+                        }
                     }
                 }
 
                 //ako dulje od 20 sec nije poslana nikakva poruka pošalji keepalive
                 if(stopWatch.ElapsedMilliseconds > 20000){
-                    stopWatch.Stop();
-                    sendMessage( new byte[]{0,0,0,0});
+                    sendMessage(new byte[] { 0, 0, 0, 0 });
+                    stopWatch.Restart();  
                 }             
             }
 
