@@ -178,15 +178,9 @@ namespace TorrentClient
             string hexa = BitConverter.ToString(localMetaInfoHash);
 
             //provjeri jel su primljeni i vlastiti hash jednaki
-            for (int i = 0; i < 20; i++)
-            {
-                if (localMetaInfoHash[i] != metaInfoHash[i])
-                {
-                    return false;
-                }
-            }
+            bool areEqual = localMetaInfoHash.SequenceEqual(metaInfoHash);
 
-            return true;
+            return areEqual;
         }
 
         //provjeri jel se peer indentificirao jedinstvenim imenom prema kojem već nemamo vezu

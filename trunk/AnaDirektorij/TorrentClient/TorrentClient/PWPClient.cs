@@ -52,6 +52,8 @@ namespace TorrentClient
         //javno dostupna metoda kroz koju se Clientu dojavljuju trenutno dostupni peerovi
         public void refreshPeers( List<Peer> currentPeers ){
 
+
+        //TODO maknuti one kojih nema u novoj listi : dakle nova lista = primljena lista (ali samo nove zovi!)
             List<Peer> newPeers = new List<Peer>();
             foreach(Peer peer in currentPeers)
             {
