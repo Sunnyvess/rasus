@@ -21,6 +21,7 @@ namespace TorrentClient
         private Thread listenThread;
 
         private int localPort;
+
         private const int maxConnections = 1;
         public int numConnections;
 
@@ -29,6 +30,9 @@ namespace TorrentClient
         private List<Peer> peers = new List<Peer>();
         public List<string> connectedPeerNames = new List<string>();
 
+        public Status[] pieceStatus;
+        public object lockerStatusaDjelova = new Object();
+
         public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes)
         {
             this.localPort = port;
@@ -36,6 +40,8 @@ namespace TorrentClient
             this.torrentMetaInfo = metaInfo;
             this.infoBytes = infoBytes;
             this.numConnections = 0;
+
+            this.pieceStatus = new Status[this.torrentMetaInfo.Info.Pieces.Length/20];
 
             this.tcpListener = new TcpListener(IPAddress.Any, localPort);
             this.listenThread = new Thread(new ThreadStart(ListenForClients));
@@ -118,5 +124,12 @@ namespace TorrentClient
                 }
             }
         }       
+    }
+
+    //izmislit bolja imena oznaka !!!!
+    public enum Status{
+        Nema,
+        Skidanje,
+        Ima
     }
 }

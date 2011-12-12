@@ -14,16 +14,11 @@ namespace TorrentClient
         private byte[] _message;
         private PWPConnection _connection;
         private Torrent _torrent;
-        private static byte[] _piece;
-        private static byte[] _partsInPiece;
 
         public MessageHandler(PWPConnection connection, int messageId, byte[] message)
         {
             _connection = connection;
             _torrent = _connection.localClient.torrentMetaInfo;
-            _piece = new byte[_torrent.Info.PieceLength];
-            _partsInPiece = new byte[_torrent.Info.PieceLength];
-            _partsInPiece.Initialize();
 
             _messageId = messageId;
             _message = message;
@@ -99,19 +94,20 @@ namespace TorrentClient
             var blockData = new byte[blockLength];
             Buffer.BlockCopy(payload, 8, blockData, 0, blockLength);
 
-            //sprema blok u piece
-            Buffer.BlockCopy(blockData, 0, _piece, blockOffset, blockLength);
-            //oznacava koji djelovi piecea su stigli
-            for (int i = blockOffset; i < blockLength; i++)
-                _partsInPiece[i] = 1;
+            lock(_connection.lockerDohvacenihPodataka){
+                //sprema blok u piece
+                Buffer.BlockCopy(blockData, 0, _connection.PieceData, blockOffset, blockLength);
+                //oznacava koji djelovi piecea su stigli
+                for (int i = blockOffset; i < blockLength; i++)
+                    _connection.HaveBytesInPiece[i] = 1;
+            }
 
-
-            //oznaci da se piece skida
+            //oznaci da se piece skida - to se označava već prilikom slanja zahtjeva za piecom
 
 
             //provjera jel skupljen cijeli piece
             bool zeroFound = false;
-            foreach (byte b in _partsInPiece)
+            foreach (byte b in _connection.HaveBytesInPiece)
             {
                 if (b == 0) zeroFound = true;
             }
@@ -122,26 +118,28 @@ namespace TorrentClient
 
                 //provjera da li je piece dobar
                 SHA1 sha1 = new SHA1Managed();
-                byte[] recievedPieceHash = sha1.ComputeHash(_piece);
+                byte[] recievedPieceHash = sha1.ComputeHash(_connection.PieceData);
                 var pieceHash = new byte[20];
                 Buffer.BlockCopy(_torrent.Info.Pieces, 20 * pieceIndex, pieceHash, 0, 20);
                 if (recievedPieceHash.Equals(pieceHash))
                 {
                     //skinuti piece je dobar
-
                     //upisi da je piece primljen
+                    lock(_connection.localClient.lockerStatusaDjelova){
+                        _connection.localClient.pieceStatus[pieceIndex] = Status.Ima;
+                    }
+                    
 
                     //spremi ga u datoteku -- isto kao za citanje u sendPiece
+                    //TODO!!! (prilikom spremanja paziti na hijerarhiju direktorija)
                 }
                 else
                 {
                     //piece nije dobar
-
                     //upisi da piece nije primljen
-                    _piece.Initialize();
-                    _partsInPiece.Initialize();
+                    _connection.PieceData.Initialize();
+                    _connection.HaveBytesInPiece.Initialize();
                 }
-
             }
         }
 
@@ -169,7 +167,23 @@ namespace TorrentClient
 
             if (blockLength < Math.Pow(2, 17))
             {
-                // MessageSender.Piece(pieceIndex, blockOffset, blockLength);
+                bool senderBussy;
+                while(true){
+
+                    lock (_connection.pieceSender.sendPieceDataLocker)
+                    {
+                        senderBussy = _connection.pieceSender.readyForSend;
+                    }
+                    if (!senderBussy)
+                    {
+                        break;
+                    }
+                }
+
+                 _connection.pieceSender.pieceIndex = pieceIndex;
+                 _connection.pieceSender.blockOffset = blockOffset;
+                 _connection.pieceSender.blockLength = blockLength;
+                 _connection.pieceSender.readyForSend = true;
             }
             else
             {

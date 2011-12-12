@@ -7,7 +7,7 @@ namespace TorrentClient
 {
     //information holder - zastavice ! uzimam tominu implementaciju kad bude gotova
     //pamćenje stanja veze
-    class ConnectionStatus
+    public class ConnectionStatus
     {
         bool choked;
         bool interested;

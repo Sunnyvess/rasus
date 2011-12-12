@@ -35,8 +35,7 @@ namespace MessageCommunication
                 if (stream.Read(messageSizeByte, 0, 4) == 0)
                 {
                     _connection.closeConnection("Primljena je poruka duljine nula");
-                    //promjeniti u break kad se doda petlja
-                    return;
+                    break;
                 }
 
                 int messageSize = BitConverter.ToInt32(Convertor.ConvertToBigEndian(messageSizeByte), 0);
@@ -45,7 +44,11 @@ namespace MessageCommunication
                 var message = new byte[messageSize];
 
                 //citanje poruke
-                stream.Read(message, 0, messageSize);
+                if (stream.Read(message, 0, messageSize) == 0)
+                {
+                    _connection.closeConnection("Primljena je poruka duljine nula");
+                    break;
+                }
 
                 //odvajanje id porke i payloada
                 var messageIdInBytes = new byte[] { 0, 0, 0, message[0] };
