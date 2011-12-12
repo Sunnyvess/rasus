@@ -44,5 +44,13 @@ namespace TorrentClient
                 Array.Reverse(array);
             return array;
         }
+
+        public static byte[] ConvertIntToBytes(int number)
+        {
+            byte[] numInBytes = BitConverter.GetBytes(number);
+            ConvertToBigEndian(numInBytes);
+
+            return numInBytes;
+        }
     }
 }

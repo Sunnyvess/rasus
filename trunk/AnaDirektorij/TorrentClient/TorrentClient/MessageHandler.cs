@@ -102,8 +102,6 @@ namespace TorrentClient
                     _connection.HaveBytesInPiece[i] = 1;
             }
 
-            //oznaci da se piece skida - to se označava već prilikom slanja zahtjeva za piecom
-
 
             //provjera jel skupljen cijeli piece
             bool zeroFound = false;
