@@ -16,7 +16,7 @@ namespace TrackerCommunication
     class Req
     {
         private int requestTimeOut = 1 * 60 * 1000;
-        private Dictionary<string,object> response;
+        private byte[] response;
         //private int requestInterval;
         private string urlTracker;
         private double uploaded;
@@ -94,13 +94,13 @@ namespace TrackerCommunication
                 }
                 catch (WebException we)
                 {
-                    Console.WriteLine(we.Message);
+                    Console.WriteLine("Exception 1:" + we.Message);
                 }
 
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("Exception 2:" + e.Message);
             }
             }
 
@@ -131,7 +131,7 @@ namespace TrackerCommunication
             }
             catch (WebException we)
             {
-                Console.WriteLine(we.Message);
+                Console.WriteLine("Exception 3:" + we.Message);
             }
             allDone.Set();
         }
@@ -160,24 +160,23 @@ namespace TrackerCommunication
                 // Create the dictionary
                 try
                 {
-                    string resp = Conversions.ConvertByteArrayToString(trackerResponse);
+                    response = trackerResponse;
                     // Is there a failure reason ??
-                    if (resp.Contains("failure reason"))
+                    if (Conversions.ConvertByteArrayToString(response).Contains("failure reason"))
                     {
-                        Console.WriteLine("\n" + resp + "\n");
+                        Console.WriteLine("\n" + Conversions.ConvertByteArrayToString(response) + "\n");
                         trackerFailure = true;
-                        trackerFailureReason = response["failure reason"].ToString();
-                        response.Clear();
+                        trackerFailureReason = response.ToString();
                     }
                     else
                     {      // We have data from the Tracker
-                        Console.WriteLine("\n Imamo podatke! :) \n");
-                        BEncoder.Encode(response);
+                        Console.WriteLine("\n Imamo pozitivan response! :) \n");
+                        BEncoder.Decode(response);
                     }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Exception 4:" + e.Message);
                 }
             }
             
