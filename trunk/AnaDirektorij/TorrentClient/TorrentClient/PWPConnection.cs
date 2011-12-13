@@ -37,6 +37,7 @@ namespace TorrentClient
         public object lockerDohvacenihPodataka = new Object();
 
         //TODO!!!!podaci o zahtjevanim piecovima, stalno se nadodaju - ako dođe choke : lista se briše :D
+        //Komentar by Toma: možda je malo nejasno napisano - ako naš klijent napravi/pošalje choke prema peeru - lista se briše.
         public Queue<PieceSender> pieceSendingQueue;
 
         public object pieceSenderLocker = new Object();
@@ -124,17 +125,20 @@ namespace TorrentClient
                         MessageSender.SendHave(index, this);
                     }
                 }
-
-                if(pieceSendingQueue.Count > 7 && !connectionState.peerChoked){
+				
+				//Komentar by Toma: Pretpostavljam da je ovo samo za testiranje
+                if(pieceSendingQueue.Count > 7 && !connectionState.peerChoking){
                     MessageSender.sendChoke(this);
                 }else{
-                    if(pieceSendingQueue.Count <= 7 && connectionState.peerChoked){
+                    if(pieceSendingQueue.Count <= 7 && connectionState.peerChoking){
                     MessageSender.sendUnchoke(this);
                     }
                 }
                 
                 //ovo smislit po nekom algoritmu!
-                if(!this.connectionState.localChoked){
+                //komentar by toma: Algoritam postavlja zastavice, dovoljno je provjeriti da su zastavice ok.
+                //Uvjet za slanje requestova
+				if(!this.connectionState.peerChoking && this.connectionState.amInterested){
                     lock(lockerDohvacenihPodataka){
                         if(pieceIndexDownloading == -1){
                             lock(piecesStatusLocker){
@@ -145,7 +149,12 @@ namespace TorrentClient
                             }
                         }
                     }
+				}
+				
 
+                //uvjet koji treba biti ispunjen za slanje pieceova
+                if (!this.connectionState.amChoking && this.connectionState.peerInterested)
+				{
                     lock (pieceSenderLocker)
                     {
 
@@ -159,6 +168,7 @@ namespace TorrentClient
                             }
                             catch
                             {
+								//Za slučaj da je queue prazan, catcha se break;
                                 break;
                             }
 

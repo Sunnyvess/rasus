@@ -11,7 +11,7 @@ namespace TorrentClient
     class MessageSender
     {
 
-        public static void sendChoke(PWPConnection connection)
+		public static void sendChoke(PWPConnection connection)
         {
             //MessageLength(4) + MessageId(1)
             int messageLength = 1;
@@ -23,7 +23,10 @@ namespace TorrentClient
 
             connection.sendMessage(message);
 
-            connection.connectionState.peerChoked = true;
+            connection.connectionState.peerChoking = true;
+            
+            //Brisanje svih zahtjeva iz liste zahtjeva peera
+            connection.pieceSendingQueue.Clear();
         }
 
         public static void sendUnchoke(PWPConnection connection)
@@ -38,8 +41,39 @@ namespace TorrentClient
 
             connection.sendMessage(message);
 
-            connection.connectionState.peerChoked = false;
+            connection.connectionState.peerChoking = false;
         }
+
+        public static void sendInterested(PWPConnection connection)
+        {
+            //MessageLength(4) + MessageId(1)
+            int messageLength = 1;
+            byte messageId = 2;
+
+            var message = new byte[messageLength + 4];
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
+            message[4] = messageId;
+
+            connection.sendMessage(message);
+
+            connection.connectionState.peerInterested = true;
+        }
+
+        public static void sendUninterested(PWPConnection connection)
+        {
+            //MessageLength(4) + MessageId(1)
+            int messageLength = 1;
+            byte messageId = 3;
+
+            var message = new byte[messageLength + 4];
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
+            message[4] = messageId;
+
+            connection.sendMessage(message);
+
+            connection.connectionState.peerInterested = false;
+        }
+		
         public static void SendHave(int pieceIndex, PWPConnection connection)
         {
             //MessageLength(4) + MessageId(1) + PieceIndex(4)
