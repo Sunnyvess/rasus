@@ -17,7 +17,6 @@ namespace TrackerCommunication
     {
         private int requestTimeOut = 1 * 60 * 1000;
         private byte[] response;
-        //private int requestInterval;
         private string urlTracker;
         private double uploaded;
         private double downloaded;
@@ -59,9 +58,14 @@ namespace TrackerCommunication
             sb.Append("&uploaded=" + uploaded.ToString());
             sb.Append("&downloaded=" + downloaded.ToString());
             sb.Append("&left=" + left.ToString());
-            sb.Append("&event=" + status.ToString());
-            sb.Append("&num_peers=0");
             sb.Append("&ip=" + clientHost.PeerIP.ToString());
+            sb.Append("&numwant=0");
+            sb.Append("&event=" + status.ToString());
+            sb.Append("&compact=0");
+            sb.Append("&no_peer_id=1");
+            //sb.Append("&key=123"); neobavezno
+            //sb.Append("&trackerid=0"); neobavezno
+            
 
             // Escape the String
             trackerGetRequest = sb.ToString();
