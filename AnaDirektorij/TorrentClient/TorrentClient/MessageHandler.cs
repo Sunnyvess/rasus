@@ -233,6 +233,8 @@ namespace TorrentClient
 
                 var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath + "\\" + torrentInfo.File.Path);
                 lock(_connection.localClient.dataStoringLocker){
+
+                    Directory.CreateDirectory(fileInfo.DirectoryName);
                     FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
 
                     int writingOffset = pieceIndex * pieceLength;
@@ -272,6 +274,8 @@ namespace TorrentClient
 
                     
                     var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath + "\\" + torrentInfo.Name + "\\" + torrentInfo.Files[fileIndex].Path);
+                    
+                    Directory.CreateDirectory(fileInfo.DirectoryName);
                     FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
 
                     int writingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
@@ -301,7 +305,10 @@ namespace TorrentClient
                         var tempBuffer = new byte[bytesToWrite];
 
                         var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath + "\\" + torrentInfo.Name + "\\" + torrentInfo.Files[fileIndex].Path);
+
+                        Directory.CreateDirectory(fileInfo.DirectoryName);
                         FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
+
                         lock(_connection.localClient.dataStoringLocker){
                             try
                             {
