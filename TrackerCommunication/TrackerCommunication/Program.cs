@@ -9,7 +9,7 @@ namespace TrackerCommunication
     {
         static void Main(string[] args)
         {
-            TrackerCommunication TC = new TrackerCommunication();
+            Req TC = new Req();
             TC.StartTrackerCommunication();
         }
     }
