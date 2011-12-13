@@ -43,7 +43,7 @@ namespace TorrentClient
                     uninterested();
                     break;
                 case 4:
-                    have(_message);
+                    ProcessReceivedHave(_message);
                     break;
                 case 5:
                     ProcessReceivedBitfield(_message);
@@ -383,7 +383,7 @@ namespace TorrentClient
 
         }
 
-        private void have(byte[] payload)
+        private void ProcessReceivedHave(byte[] payload)
         {
             //payload je index piecea
             int pieceIndex = BitConverter.ToInt32(Convertor.ConvertToBigEndian(payload), 0);
@@ -399,24 +399,24 @@ namespace TorrentClient
 
         private void uninterested()
         {
-            this._connection.connectionState.amInterested = false;
+            _connection.connectionState.amInterested = false;
 
         }
 
         private void interested()
         {
-            this._connection.connectionState.amInterested = true;
+            _connection.connectionState.amInterested = true;
         }
 
         private void unchoke()
         {
-            this._connection.connectionState.amChoking = false;
+            _connection.connectionState.amChoking = false;
             
         }
 
         private void choke()
         {
-            this._connection.connectionState.amChoking = true;
+            _connection.connectionState.amChoking = true;
         }
 
     }
