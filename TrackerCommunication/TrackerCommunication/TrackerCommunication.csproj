@@ -52,7 +52,6 @@
     <Compile Include="Request.cs" />
     <Compile Include="RequestState.cs" />
     <Compile Include="Response.cs" />
-    <Compile Include="URLencode.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\TorrentClient\Bencoder\Bencoder\Bencoder.csproj">

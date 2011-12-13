@@ -9,6 +9,8 @@ namespace TrackerCommunication
     {
         static void Main(string[] args)
         {
+            Request getReq = new Request();
+            getReq.SendTrackerGet();
         }
     }
 }

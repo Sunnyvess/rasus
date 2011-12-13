@@ -16,12 +16,8 @@ namespace TrackerCommunication
     class Request
     {
         private int requestTimeOut = 1 * 60 * 1000;
-        private int requestInterval;
+        //private int requestInterval;
         private string urlTracker;
-        private byte[] infoHash;
-        private PeerID peerID;
-        private string ip;
-        private int port;
         private double uploaded;
         private double downloaded;
         private double left;
@@ -29,44 +25,54 @@ namespace TrackerCommunication
         private string trackerGetRequest;
         private RequestState requestState;
         private byte[] trackerResponse;
-        private bool trackerFailure;
-        private string trackerFailureReason;
-        private string path;
-        Torrent torrent = new Torrent();
+        //private string path;
+        Torrent torrent = new Torrent(@"D:\Downloads\Brave_New_World_1of5.torrent");
         
+        //path = "D:\Downloads\Brave_New_World_1of5.torrent";
+
         public byte[] infoHash()
         {
-            return InfoExtractor.ExtractInfoValue(path);
+            return InfoExtractor.ExtractInfoValue("D:\\Downloads\\Brave_New_World_1of5.torrent");
         }
 
+        
+        Peer clientHost = new Peer();
 
         private void PrepareTrackerRequest()
         {
-
-            urlTracker = torrent.Announce.ToString(); 
+            status = TrackerEvents.started;
+            urlTracker = torrent.Announce.ToString();
+            uploaded = 0;
+            downloaded = 0;
+            left = 100;
+            Console.WriteLine(status);
+            Console.WriteLine(urlTracker);
             // Prepare the Get string
             StringBuilder sb = new StringBuilder();
             sb.Append(urlTracker + "?");
             sb.Append("info_hash=" + Conversions.EscapeString(infoHash()));
-            sb.Append("&peer_id=" + Conversions.EscapeString(peerID.ID));
-            sb.Append("&port=" + port.ToString());
+            sb.Append("&peer_id=" + Conversions.EscapeString(clientHost.PeerID));
+            sb.Append("&port=" + clientHost.PeerPort.ToString());
             sb.Append("&uploaded=" + uploaded.ToString());
             sb.Append("&downloaded=" + downloaded.ToString());
             sb.Append("&left=" + left.ToString());
             sb.Append("&event=" + status.ToString());
             sb.Append("&num_peers=0");
-            sb.Append("&ip=" + ip.ToString());
+            sb.Append("&ip=" + clientHost.PeerIP.ToString());
+
             // Escape the String
             trackerGetRequest = sb.ToString();
+            
         }
 
-        private void SendTrackerGet()
+        public void SendTrackerGet()
         {
             PrepareTrackerRequest();
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(trackerGetRequest);
             requestState = new RequestState();
             // To store the request
             requestState.request = request;
+            WebResponse response = request.GetResponse();
             try
             {
                 // Start the Async request
@@ -75,10 +81,8 @@ namespace TrackerCommunication
                 // We need a TimeOut
                 ThreadPool.RegisterWaitForSingleObject(result.AsyncWaitHandle, new WaitOrTimerCallback(TrackerGetTimeOut), requestState, requestTimeOut, true);
 
-                requestState.response.Close();
+                requestState.streamResponse.Close();
                 trackerResponse = null;
-                trackerFailure = false;
-                trackerFailureReason = string.Empty;
             }
             catch (WebException we)
             {
@@ -95,7 +99,7 @@ namespace TrackerCommunication
                 if (request != null)
                     request.Abort();
                 // To create the timer
-                requestInterval = 2 * 60 * 1000;
+                //requestInterval = 2 * 60 * 1000;
                 //ProcessTrackerResponse();
             }
         }
