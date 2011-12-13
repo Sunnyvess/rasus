@@ -130,7 +130,7 @@ namespace TorrentClient
                         MessageSender.SendHave(index, this);
                     }
                 }
-				/*
+				
 				//Komentar by Toma: Pretpostavljam da je ovo samo za testiranje
                 if(pieceSendingList.Count > 200 && !connectionState.amChoking){
                     MessageSender.sendChoke(this);
@@ -138,7 +138,7 @@ namespace TorrentClient
 
                 if(pieceSendingList.Count <= 200 && connectionState.amChoking){
                     MessageSender.sendUnchoke(this);
-                }*/
+                }
 
                 
                 

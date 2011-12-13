@@ -92,7 +92,7 @@ namespace TorrentClient
         {
             //MessageLength(4) + MessageId(1) + StatusList
             int numOfPieces = myStatus.Length;
-            int bitfieldLength = numOfPieces/8 + 1;
+            int bitfieldLength = numOfPieces / 8 + 1;
             var statusList = new byte[bitfieldLength];
 
             for (int i = 0; i < bitfieldLength; i++)
@@ -101,7 +101,7 @@ namespace TorrentClient
                 statusList[i] = 0;
                 for (int j = 0; j < 8; j++)
                 {
-                    if(i*8 + j < numOfPieces)
+                    if (i * 8 + j < numOfPieces)
                     {
                         bit = myStatus[i] == Status.Ima ? (byte)1 : (byte)0;
                     }
@@ -112,14 +112,14 @@ namespace TorrentClient
                     }
 
                     //upisi bit
-                    statusList[i] = (byte)((statusList[i] << 1) & bit);
+                    statusList[i] = (byte)((statusList[i] << 1) | bit);
                 }
             }
 
             byte messageId = 5;
-            int messageLength = 1 + numOfPieces;
+            int messageLength = 1 + bitfieldLength;
             var message = new byte[messageLength + 4];
-            
+
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
             message[4] = messageId;
             Buffer.BlockCopy(statusList, 0, message, 5, bitfieldLength);
