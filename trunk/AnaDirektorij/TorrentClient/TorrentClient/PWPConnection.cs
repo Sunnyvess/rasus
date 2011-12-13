@@ -31,6 +31,9 @@ namespace TorrentClient
         public byte[] PieceData;
         public byte[] HaveBytesInPiece;
 
+        public int pieceIndexDownloading;
+        public object pieceIndexDownloadingLocker = new Object();
+
         public object lockerDohvacenihPodataka = new Object();
 
         //TODO!!!!podaci o zahtjevanim piecovima, stalno se nadodaju - ako dođe choke : lista se briše :D
@@ -50,9 +53,7 @@ namespace TorrentClient
             this.localClient = newLocalClient;
             this.connectionState = new ConnectionStatus();
 
-            PieceData = new byte[newLocalClient.torrentMetaInfo.Info.PieceLength];
-            HaveBytesInPiece = new byte[newLocalClient.torrentMetaInfo.Info.PieceLength];
-            HaveBytesInPiece.Initialize();
+            pieceIndexDownloading = -1;
 
             pieceSendingQueue = new Queue<PieceSender>();
 
@@ -134,10 +135,14 @@ namespace TorrentClient
                 
                 //ovo smislit po nekom algoritmu!
                 if(!this.connectionState.localChoked){
-                    lock(piecesStatusLocker){
-                        lock(localClient.lockerStatusaDjelova){
+                    lock(lockerDohvacenihPodataka){
+                        if(pieceIndexDownloading == -1){
+                            lock(piecesStatusLocker){
+                                lock(localClient.lockerStatusaDjelova){
 
-                            MessageSender.SendRequest(localClient.pieceStatus, this.peerPiecesStatus, this);
+                                    MessageSender.SendRequest(localClient.pieceStatus, this.peerPiecesStatus, this);
+                                }
+                            }
                         }
                     }
 
