@@ -65,10 +65,30 @@ namespace TorrentClient
 
         private void ProcessReceivedBitfield(byte[] payload)
         {
-            int numOfPieces = payload.Length;
+            int numOfPieces = _connection.peerPiecesStatus.Length;
+            
+            //u payloadu je jedan piece reprezentian jednim bitom, a kod nas jednim bytom
+            //prebacujemo bitArray to ByteArray
+            var hisBitefield = new byte[numOfPieces];
+            
+            //za svaki bajt
+            for (int i = 0; i < payload.Length; i++)
+            {
+                //za svaki bit u bajtu
+                for(int j = 0; j < 8; j++)
+                {
+                    if(i*8 + j >= numOfPieces)
+                        break;
 
-            if(_connection.peerPiecesStatus.Length != numOfPieces){
-                _connection.closeConnection("Peer poslao bitfield neodgovarajuce duljine!");
+                    if ((payload[i] & 1 << j) == 0)
+                    {
+                        hisBitefield[i*8 + j] = 0;
+                    }
+                    else
+                    {
+                        hisBitefield[i*8 + j] = 1;
+                    }
+                }
             }
 
             lock(_connection.piecesStatusLocker){
