@@ -23,7 +23,7 @@ namespace TorrentClient
 
             connection.sendMessage(message);
 
-            connection.connectionState.peerChoking = true;
+            connection.connectionState.amChoking = true;
             
             //Brisanje svih zahtjeva iz liste zahtjeva peera
             connection.pieceSendingList.Clear();
@@ -41,7 +41,7 @@ namespace TorrentClient
 
             connection.sendMessage(message);
 
-            connection.connectionState.peerChoking = false;
+            connection.connectionState.amChoking = false;
         }
 
         public static void sendInterested(PWPConnection connection)
@@ -56,7 +56,7 @@ namespace TorrentClient
 
             connection.sendMessage(message);
 
-            connection.connectionState.peerInterested = true;
+            connection.connectionState.amInterested = true;
         }
 
         public static void sendUninterested(PWPConnection connection)
@@ -147,8 +147,6 @@ namespace TorrentClient
                     return;
                 }
             }
-
-            MessageSender.sendInterested(connection);
 
             //označi da si si bezeciral piece :D
             lock(connection.localClient.lockerStatusaDjelova){

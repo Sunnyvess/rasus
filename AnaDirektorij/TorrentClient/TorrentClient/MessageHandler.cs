@@ -270,8 +270,9 @@ namespace TorrentClient
                 {
                     //piece je iz jednog filea
 
+                    
                     var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath + "\\" + torrentInfo.Name + "\\" + torrentInfo.Files[fileIndex].Path);
-                    FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Read);
+                    FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
 
                     int writingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
                     lock(_connection.localClient.dataStoringLocker){
@@ -393,10 +394,6 @@ namespace TorrentClient
             lock(_connection.piecesStatusLocker){
                 _connection.peerPiecesStatus[pieceIndex] = Status.Ima;
             }
-
-            //nisam sigurna da kod ispod nije potreban
-            //Status[] hisStatus = _connection.peerPiecesStatus;
-            //hisStatus[pieceIndex] = Status.Ima;
         }
 
         private void ProcessReceivedUninterested()
