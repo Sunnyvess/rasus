@@ -55,7 +55,7 @@ namespace TorrentClient
                     ProcessReceivedPiece(_message);
                     break;
                 case 8:
-                    cancel(_message);
+                    ProcessReceivedCancel(_message);
                     break;
                 default:
                     _connection.closeConnection("Pristigla poruka neodgovarajuceg Id-a");
@@ -88,9 +88,30 @@ namespace TorrentClient
 
 
 
-        private void cancel(byte[] message)
+        private void ProcessReceivedCancel(byte[] payload)
         {
-            throw new NotImplementedException();
+            //parsiranje isto kao za request
+            var pieceIndexInBytes = new byte[4];
+            Buffer.BlockCopy(payload, 0, pieceIndexInBytes, 0, 4);
+            int pieceIndex = BitConverter.ToInt32(Convertor.ConvertToBigEndian(pieceIndexInBytes), 0);
+
+            var blockOffsetInBytes = new byte[4];
+            Buffer.BlockCopy(payload, 4, blockOffsetInBytes, 0, 4);
+            int blockOffset = BitConverter.ToInt32(Convertor.ConvertToBigEndian(blockOffsetInBytes), 0);
+
+            var blockLengthInBytes = new byte[4];
+            Buffer.BlockCopy(payload, 8, blockLengthInBytes, 0, 4);
+            int blockLength = BitConverter.ToInt32(Convertor.ConvertToBigEndian(blockLengthInBytes), 0);
+
+            //trazenje requesta
+            foreach (PieceSender request in _connection.pieceSendingList)
+            {
+                if (request.pieceIndex == pieceIndex && request.blockOffset == blockOffset && request.blockLength == blockLength)
+                {
+                    _connection.pieceSendingList.RemoveAll(p => p.Equals(request));
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -352,7 +373,7 @@ namespace TorrentClient
                 pieceSender.blockLength = blockLength;  
                 
                 lock(_connection.pieceSenderLocker){
-                    _connection.pieceSendingQueue.Enqueue(pieceSender);
+                    _connection.pieceSendingList.Insert(0, pieceSender);
                 }
             }
             else
