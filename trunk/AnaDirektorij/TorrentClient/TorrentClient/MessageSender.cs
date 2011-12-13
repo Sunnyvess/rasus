@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net.Sockets;
+using FairTorrent;
 
 namespace TorrentClient
 {
@@ -10,6 +11,35 @@ namespace TorrentClient
     class MessageSender
     {
 
+        public static void sendChoke(PWPConnection connection)
+        {
+            //MessageLength(4) + MessageId(1)
+            int messageLength = 1;
+            byte messageId = 0;
+
+            var message = new byte[messageLength + 4];
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
+            message[4] = messageId;
+
+            connection.sendMessage(message);
+
+            connection.connectionState.peerChoked = true;
+        }
+
+        public static void sendUnchoke(PWPConnection connection)
+        {
+            //MessageLength(4) + MessageId(1)
+            int messageLength = 1;
+            byte messageId = 1;
+
+            var message = new byte[messageLength + 4];
+            Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
+            message[4] = messageId;
+
+            connection.sendMessage(message);
+
+            connection.connectionState.peerChoked = false;
+        }
         public static void SendHave(int pieceIndex, PWPConnection connection)
         {
             //MessageLength(4) + MessageId(1) + PieceIndex(4)
@@ -20,6 +50,8 @@ namespace TorrentClient
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
             message[4] = messageId;
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(pieceIndex), 0, message, 5, 4);
+
+            connection.sendMessage(message);
         }
 
         public static void SendBitField(Status[] myStatus, PWPConnection connection)
@@ -84,6 +116,15 @@ namespace TorrentClient
             //označi da si si bezeciral piece :D
             lock(connection.localClient.lockerStatusaDjelova){
                 connection.localClient.pieceStatus[index] = Status.Skidanje;
+            }
+
+            //zadnji piece monje biti i manji!!
+            if(index == numOfPieces-1){
+                int fileLength = ((SingleFileTorrentInfo) connection.localClient.torrentMetaInfo.Info).File.Length;
+                int newPieceLength = fileLength - numOfPieces * pieceLength;
+                if(newPieceLength != 0){
+                    pieceLength = newPieceLength;
+                }
             }
  
             int messageLength = 13;

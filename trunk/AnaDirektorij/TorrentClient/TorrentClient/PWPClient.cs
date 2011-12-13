@@ -36,6 +36,9 @@ namespace TorrentClient
 
         public string logFilePath;
 
+        public object dataStoringLocker = new Object();
+        public object logCreatingLocker = new Object();
+
         public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes, string logFilePath)
         {
             this.localPort = port;

@@ -121,33 +121,43 @@ namespace TorrentClient
                         MessageSender.SendHave(index, this);
                     }
                 }
+
+                if(pieceSendingQueue.Count > 7 && !connectionState.peerChoked){
+                    MessageSender.sendChoke(this);
+                }else{
+                    if(pieceSendingQueue.Count <= 7 && connectionState.peerChoked){
+                    MessageSender.sendUnchoke(this);
+                    }
+                }
                 
                 //ovo smislit po nekom algoritmu!
-                //if(!this.connectionState.choked && this.connectionState.interested){
-
+                if(!this.connectionState.localChoked){
                     lock(piecesStatusLocker){
 
                         MessageSender.SendRequest(this.localPiecesStatus, this.peerPiecesStatus, this);
                     }
-                //}
-                   
 
-                lock(pieceSenderLocker){
+                    lock (pieceSenderLocker)
+                    {
 
-                    while(true){
-                        PieceSender sender;
-                        try{
-                        sender = pieceSendingQueue.Dequeue();
+                        while (true)
+                        {
+                            PieceSender sender;
+                            try
+                            {
+                                sender = pieceSendingQueue.Dequeue();
 
+                            }
+                            catch
+                            {
+                                break;
+                            }
+
+                            sender.sendPiece();
                         }
-                        catch{
-                            break;
-                        }
-
-                        sender.sendPiece();
                     }
                 }
-
+  
                 //ako dulje od 20 sec nije poslana nikakva poruka pošalji keepalive
                 if(stopWatch.ElapsedMilliseconds > 20000){
                     sendMessage(new byte[] { 0, 0, 0, 0 });
