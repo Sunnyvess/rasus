@@ -40,6 +40,8 @@ namespace TorrentClient
         //Komentar by Toma: možda je malo nejasno napisano - ako naš klijent napravi/pošalje choke prema peeru - lista se briše.
         public List<PieceSender> pieceSendingList;
 
+        
+
         public object pieceSenderLocker = new Object();
 
         //koje piecove imam ja a koje peer
@@ -127,10 +129,10 @@ namespace TorrentClient
                 }
 				
 				//Komentar by Toma: Pretpostavljam da je ovo samo za testiranje
-                if(pieceSendingList.Count > 7 && !connectionState.peerChoking){
+                if(pieceSendingList.Count > 200 && !connectionState.peerChoking){
                     MessageSender.sendChoke(this);
                 }else{
-                    if(pieceSendingList.Count <= 7 && connectionState.peerChoking){
+                    if(pieceSendingList.Count <= 200 && connectionState.peerChoking){
                     MessageSender.sendUnchoke(this);
                     }
                 }
