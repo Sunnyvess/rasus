@@ -34,12 +34,12 @@ namespace TorrentClient
         public Status[] pieceStatus;
         public object lockerStatusaDjelova = new Object();
 
-        public string logFilePath;
+        public string torrentRootFolderPath;
 
         public object dataStoringLocker = new Object();
         public object logCreatingLocker = new Object();
 
-        public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes, string logFilePath)
+        public PWPClient(int port, string name, Torrent metaInfo, byte[] infoBytes, string torrentRootFolderPath)
         {
             this.localPort = port;
             this.clientName = name;
@@ -47,7 +47,7 @@ namespace TorrentClient
             this.infoBytes = infoBytes;
             this.numConnections = 0;
 
-            this.logFilePath = logFilePath;
+            this.torrentRootFolderPath = torrentRootFolderPath;
             this.pieceStatus = new Status[this.torrentMetaInfo.Info.Pieces.Length/20];
 
             this.pieceStatus = readLogFile();
@@ -101,7 +101,7 @@ namespace TorrentClient
             piecesStates.Initialize();
 
             try{
-                TextReader logReader = new StreamReader(this.logFilePath);
+                TextReader logReader = new StreamReader(this.torrentRootFolderPath+"\\logFile.txt");
                 while(true){
                     string line = logReader.ReadLine();
 

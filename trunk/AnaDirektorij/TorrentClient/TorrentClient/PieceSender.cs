@@ -35,7 +35,7 @@ namespace TorrentClient
             {
                 var torrentInfo = (SingleFileTorrentInfo) _torrent.Info;
 
-                var fileInfo = new System.IO.FileInfo("resources\\"+torrentInfo.File.Path);
+                var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath+"\\"+torrentInfo.File.Path);
                 FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
 
                 int readingOffset = pieceIndex*torrentInfo.PieceLength + blockOffset;
@@ -75,7 +75,7 @@ namespace TorrentClient
                 {
                     //blok je iz jednog filea
 
-                    var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
+                    var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath+"\\"+torrentInfo.Name+"\\"+torrentInfo.Files[fileIndex].Path);
                     FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
 
                     int readingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
@@ -102,7 +102,7 @@ namespace TorrentClient
                         int bytesToRead = endReadingOffset - startRadingOffset;
                         var tempBuffer = new byte[bytesToRead];
 
-                        var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
+                        var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath + "\\" + torrentInfo.Name + "\\" + torrentInfo.Files[fileIndex].Path);
                         FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
 
                         int bytesReaded;

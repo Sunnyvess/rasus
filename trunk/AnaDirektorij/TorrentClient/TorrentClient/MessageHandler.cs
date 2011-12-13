@@ -230,8 +230,8 @@ namespace TorrentClient
             {
                 var torrentInfo = (SingleFileTorrentInfo)_torrent.Info;
                 int pieceLength = torrentInfo.PieceLength;
-                
-                var fileInfo = new System.IO.FileInfo(torrentInfo.File.Path);
+
+                var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath + "\\" + torrentInfo.File.Path);
                 lock(_connection.localClient.dataStoringLocker){
                     FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
 
@@ -270,7 +270,7 @@ namespace TorrentClient
                 {
                     //piece je iz jednog filea
 
-                    var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
+                    var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath + "\\" + torrentInfo.Name + "\\" + torrentInfo.Files[fileIndex].Path);
                     FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Read);
 
                     int writingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
@@ -299,7 +299,7 @@ namespace TorrentClient
                         int bytesToWrite = endWritingOffset - startWritingOffset;
                         var tempBuffer = new byte[bytesToWrite];
 
-                        var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
+                        var fileInfo = new System.IO.FileInfo(_connection.localClient.torrentRootFolderPath + "\\" + torrentInfo.Name + "\\" + torrentInfo.Files[fileIndex].Path);
                         FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
                         lock(_connection.localClient.dataStoringLocker){
                             try
@@ -335,7 +335,7 @@ namespace TorrentClient
         private void logPieceRecival(int pieceIndex){
             lock(_connection.localClient.logCreatingLocker){
                 try{
-                    TextWriter logWriter = File.AppendText(_connection.localClient.logFilePath);
+                    TextWriter logWriter = File.AppendText(_connection.localClient.torrentRootFolderPath + "\\logFile.txt");
                     logWriter.WriteLine(pieceIndex.ToString());
                     logWriter.Close();
                 }catch{
