@@ -59,7 +59,9 @@ namespace TorrentClient
             localPiecesStatus = new Status[newLocalClient.pieceStatus.Length];
             peerPiecesStatus = new Status[newLocalClient.pieceStatus.Length];
             peerPiecesStatus.Initialize();
+            lock(newLocalClient.lockerStatusaDjelova){
             newLocalClient.pieceStatus.CopyTo(localPiecesStatus, 0);
+            }
         }
 
         //probaj se spojiti na peera
@@ -115,8 +117,8 @@ namespace TorrentClient
                 Dictionary<int, Status> changes = checkforChanges();
                 foreach (int index in changes.Keys)
                 {
-                    localPiecesStatus[index] = localClient.pieceStatus[index];
-                    if (localClient.pieceStatus[index] == Status.Ima)
+                    localPiecesStatus[index] = changes[index];
+                    if ( changes[index] == Status.Ima)
                     {
                         MessageSender.SendHave(index, this);
                     }
@@ -133,8 +135,10 @@ namespace TorrentClient
                 //ovo smislit po nekom algoritmu!
                 if(!this.connectionState.localChoked){
                     lock(piecesStatusLocker){
+                        lock(localClient.lockerStatusaDjelova){
 
-                        MessageSender.SendRequest(this.localPiecesStatus, this.peerPiecesStatus, this);
+                            MessageSender.SendRequest(localClient.pieceStatus, this.peerPiecesStatus, this);
+                        }
                     }
 
                     lock (pieceSenderLocker)
@@ -199,10 +203,17 @@ namespace TorrentClient
 
         private Dictionary<int, Status> checkforChanges()
         {
+            
             Dictionary<int, Status> changeMapping = new Dictionary<int, Status>();
-            for(int i = 0; i < localPiecesStatus.Length; i++){
-                if(localPiecesStatus[i] != localClient.pieceStatus[i]){
-                    changeMapping.Add(i, localClient.pieceStatus[i]);
+            lock (localClient.lockerStatusaDjelova)
+            {
+                lock(piecesStatusLocker){
+                    for(int i = 0; i < localPiecesStatus.Length; i++){
+                
+                        if(localPiecesStatus[i] != localClient.pieceStatus[i]){
+                            changeMapping.Add(i, localClient.pieceStatus[i]);
+                        }
+                    }
                 }
             }
             

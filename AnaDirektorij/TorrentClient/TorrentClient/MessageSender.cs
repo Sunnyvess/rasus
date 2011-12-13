@@ -121,7 +121,7 @@ namespace TorrentClient
             //zadnji piece monje biti i manji!!
             if(index == numOfPieces-1){
                 int fileLength = ((SingleFileTorrentInfo) connection.localClient.torrentMetaInfo.Info).File.Length;
-                int newPieceLength = fileLength - numOfPieces * pieceLength;
+                int newPieceLength = fileLength - (numOfPieces - 1) * pieceLength;
                 if(newPieceLength != 0){
                     pieceLength = newPieceLength;
                 }
@@ -154,6 +154,7 @@ namespace TorrentClient
 
             //izracunaj blockLength zadnji!
             blockLength = pieceLength - blockOffset;
+
             //generiraj poruku
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
             message[4] = (byte)messageId;

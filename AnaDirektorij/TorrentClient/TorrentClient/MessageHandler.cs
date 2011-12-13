@@ -104,6 +104,12 @@ namespace TorrentClient
             Buffer.BlockCopy(payload, 0, pieceIndexInBytes, 0, 4);
             int pieceIndex = BitConverter.ToInt32(Convertor.ConvertToBigEndian(pieceIndexInBytes), 0);
 
+            lock(_connection.localClient.lockerStatusaDjelova){
+                if (_connection.localClient.pieceStatus[pieceIndex] == Status.Ima){
+                    return;
+                }
+            }
+
             var blockOffsetInBytes = new byte[4];
             Buffer.BlockCopy(payload, 4, blockOffsetInBytes, 0, 4);
             int blockOffset = BitConverter.ToInt32(Convertor.ConvertToBigEndian(blockOffsetInBytes), 0);
