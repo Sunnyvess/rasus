@@ -22,7 +22,7 @@ namespace TrackerCommunication
                 peers = new ArrayList(numElements);
         }
 
-        public Peers(BEncoder peers) {
+       /* public Peers(BEncoder peers) {
             try {
                 // Create the peers from the dictionary.
 
@@ -32,7 +32,7 @@ namespace TrackerCommunication
                 
                 this.peers = new ArrayList();
             }
-        }
+        }*/
 
 
         IEnumerator IEnumerable.GetEnumerator() {
@@ -61,13 +61,13 @@ namespace TrackerCommunication
             get { return peers.Count; }
         }
 
-        public Peer this[int index] {
+       /* public Peer this[int index] {
             get {
                 if ((index < 0) || (index >= peers.Count))
                     throw new System.InvalidOperationException("Index before/after elements on container.");
                 else
                     return (Peer)peers[index];
             }
-        }
+        } */
     }
 }
