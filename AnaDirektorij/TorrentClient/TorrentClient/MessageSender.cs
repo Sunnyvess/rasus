@@ -115,7 +115,11 @@ namespace TorrentClient
 
             //označi da si si bezeciral piece :D
             lock(connection.localClient.lockerStatusaDjelova){
-                connection.localClient.pieceStatus[index] = Status.Skidanje;
+                connection.localClient.pieceStatus[index] = Status.Skidanje;          
+            }
+
+            lock(connection.lockerDohvacenihPodataka){
+                connection.pieceIndexDownloading = index;
             }
 
             //zadnji piece monje biti i manji!!
@@ -125,6 +129,12 @@ namespace TorrentClient
                 if(newPieceLength != 0){
                     pieceLength = newPieceLength;
                 }
+            }
+
+            lock(connection.lockerDohvacenihPodataka){
+                connection.PieceData = new byte[pieceLength];
+                connection.HaveBytesInPiece = new byte[pieceLength];
+                connection.HaveBytesInPiece.Initialize();
             }
  
             int messageLength = 13;

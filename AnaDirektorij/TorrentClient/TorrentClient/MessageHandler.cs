@@ -173,8 +173,10 @@ namespace TorrentClient
                 //nakon primljenog citavog paketa, bio on ispravan ili ne pocinjemo ispocetka
                 lock (_connection.lockerDohvacenihPodataka)
                 {
-                    _connection.PieceData.Initialize();
-                    _connection.HaveBytesInPiece.Initialize();
+                    _connection.PieceData = null;
+                    _connection.HaveBytesInPiece = null;
+
+                    _connection.pieceIndexDownloading = -1;
                 }
             }
         }
@@ -187,6 +189,24 @@ namespace TorrentClient
             {
                 var torrentInfo = (SingleFileTorrentInfo)_torrent.Info;
                 int pieceLength = torrentInfo.PieceLength;
+
+                int numOfPieces;
+                try{
+                    numOfPieces = _connection.PieceData.Length;
+                }catch{
+                    _connection.closeConnection("Primljeni su podaci bez da je poslan zahtjev za njima");
+                    return;
+                }
+                //ako je zadnji piece, moze biti druge duljine
+                if( pieceIndex == numOfPieces - 1){
+
+                    int fileLength = ((SingleFileTorrentInfo)_connection.localClient.torrentMetaInfo.Info).File.Length;
+                    int newPieceLength = fileLength - (numOfPieces - 1) * pieceLength;
+                    if (newPieceLength != 0)
+                    {
+                        pieceLength = newPieceLength;
+                    }
+                }
 
                 var fileInfo = new System.IO.FileInfo(torrentInfo.File.Path);
                 lock(_connection.localClient.dataStoringLocker){
