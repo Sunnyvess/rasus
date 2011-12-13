@@ -94,7 +94,7 @@ namespace TorrentClient
             lock(_connection.piecesStatusLocker){
                 for (int i = 0; i < numOfPieces ; i++)
                 {
-                    if (payload[i] == 0)
+                    if (hisBitefield[i] == 0)
                     {
                         _connection.peerPiecesStatus[i] = Status.Nema;
                     }
