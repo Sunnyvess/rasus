@@ -23,7 +23,7 @@ namespace TorrentClient
 
         public ConnectionStatus(){
             this.amChoking = true;
-            this.amInterested = false;
+            this.amInterested = true;
 
             this.peerChoking = true;
             this.peerInterested = false;

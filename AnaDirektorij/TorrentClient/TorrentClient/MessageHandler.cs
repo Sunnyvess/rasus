@@ -401,24 +401,24 @@ namespace TorrentClient
 
         private void ProcessReceivedUninterested()
         {
-            _connection.connectionState.amInterested = false;
+            _connection.connectionState.peerInterested = false;
 
         }
 
         private void ProcessReceivedInterested()
         {
-            _connection.connectionState.amInterested = true;
+            _connection.connectionState.peerInterested = true;
         }
 
         private void ProcessReceivedUnchoke()
         {
-            _connection.connectionState.amChoking = false;
+            _connection.connectionState.peerChoking = false;
             
         }
 
         private void ProcessReceivedChoke()
         {
-            _connection.connectionState.amChoking = true;
+            _connection.connectionState.peerChoking = true;
         }
 
     }
