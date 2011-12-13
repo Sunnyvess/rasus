@@ -38,7 +38,7 @@ namespace TorrentClient
 
         //TODO!!!!podaci o zahtjevanim piecovima, stalno se nadodaju - ako dođe choke : lista se briše :D
         //Komentar by Toma: možda je malo nejasno napisano - ako naš klijent napravi/pošalje choke prema peeru - lista se briše.
-        public Queue<PieceSender> pieceSendingQueue;
+        public List<PieceSender> pieceSendingList;
 
         public object pieceSenderLocker = new Object();
 
@@ -56,7 +56,7 @@ namespace TorrentClient
 
             pieceIndexDownloading = -1;
 
-            pieceSendingQueue = new Queue<PieceSender>();
+            pieceSendingList = new List<PieceSender>();
 
             localPiecesStatus = new Status[newLocalClient.pieceStatus.Length];
             peerPiecesStatus = new Status[newLocalClient.pieceStatus.Length];
@@ -127,10 +127,10 @@ namespace TorrentClient
                 }
 				
 				//Komentar by Toma: Pretpostavljam da je ovo samo za testiranje
-                if(pieceSendingQueue.Count > 7 && !connectionState.peerChoking){
+                if(pieceSendingList.Count > 7 && !connectionState.peerChoking){
                     MessageSender.sendChoke(this);
                 }else{
-                    if(pieceSendingQueue.Count <= 7 && connectionState.peerChoking){
+                    if(pieceSendingList.Count <= 7 && connectionState.peerChoking){
                     MessageSender.sendUnchoke(this);
                     }
                 }
@@ -163,7 +163,8 @@ namespace TorrentClient
                             PieceSender sender;
                             try
                             {
-                                sender = pieceSendingQueue.Dequeue();
+                                sender = pieceSendingList[pieceSendingList.Count - 1];
+                                pieceSendingList.RemoveAt(pieceSendingList.Count - 1);
 
                             }
                             catch

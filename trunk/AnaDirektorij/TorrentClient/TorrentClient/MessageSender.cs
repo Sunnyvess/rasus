@@ -26,7 +26,7 @@ namespace TorrentClient
             connection.connectionState.peerChoking = true;
             
             //Brisanje svih zahtjeva iz liste zahtjeva peera
-            connection.pieceSendingQueue.Clear();
+            connection.pieceSendingList.Clear();
         }
 
         public static void sendUnchoke(PWPConnection connection)
