@@ -51,7 +51,7 @@ namespace MessageCommunication
                 }
 
                 int messageSize = BitConverter.ToInt32(Convertor.ConvertToBigEndian(messageSizeByte), 0);
-                Console.WriteLine("Primio sam poruku duljine {0}", messageSize);
+                //Console.WriteLine("Primio sam poruku duljine {0}", messageSize);
 
                 //hvatanje keap alive poruke
                 if (messageSize == 0)

@@ -92,21 +92,31 @@ namespace TorrentClient
         {
             //MessageLength(4) + MessageId(1) + StatusList
             int numOfPieces = myStatus.Length;
-            var statusList = new byte[numOfPieces];
+            int bitfieldLength = numOfPieces/8 + 1;
+            var statusList = new byte[bitfieldLength];
 
-            for (int i = 0; i < numOfPieces; i++)
+            for (int i = 0; i < bitfieldLength; i++)
             {
-                if (myStatus[i] == Status.Ima)
+                byte bit;
+                statusList[i] = 0;
+                for (int j = 0; j < 8; j++)
                 {
-                    statusList[i] = 1;
-                }
-                else 
-                {
-                    statusList[i] = 0;
+                    if(i*8 + j < numOfPieces)
+                    {
+                        bit = myStatus[i] == Status.Ima ? (byte)1 : (byte)0;
+                    }
+                    else
+                    {
+                        //na kraj upisuj nule
+                        bit = 0;
+                    }
+
+                    //upisi bit
+                    statusList[i] = (statusList[i] << 1) & bit;
                 }
             }
 
-            byte messageId = (byte) 5;
+            byte messageId = 5;
             int messageLength = 1 + numOfPieces;
             var message = new byte[messageLength + 4];
             
