@@ -9,12 +9,18 @@ namespace TorrentClient
     //pamćenje stanja veze
     public class ConnectionStatus
     {
-        public bool choked;
-        public bool interested;
+        public bool localChoked;
+        public bool localInterested;
+
+        public bool peerChoked;
+        public bool peerInterested;
 
         public ConnectionStatus(){
-            this.choked = true;
-            this.interested = false;
+            this.localChoked = true;
+            this.localInterested = false;
+
+            this.peerChoked = true;
+            this.peerInterested = false;
         }
     }
 }

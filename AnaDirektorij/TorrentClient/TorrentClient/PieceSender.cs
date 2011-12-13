@@ -46,6 +46,10 @@ namespace TorrentClient
                 finally{
                     fileStream.Close();
                 }
+
+                //ako citanje nije bilo uspjesno DEBUG!!!
+                if (totalBytesReaded != blockLength)
+                    _connection.closeConnection("Neuspjesno citanje podataka iz datoteke.");
             }
             else
             {

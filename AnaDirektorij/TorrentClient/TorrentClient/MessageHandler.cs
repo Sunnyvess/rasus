@@ -55,7 +55,7 @@ namespace TorrentClient
                     ProcessReceivedPiece(_message);
                     break;
                 case 8:
-                    cancle();
+                    cancel(_message);
                     break;
                 default:
                     _connection.closeConnection("Pristigla poruka neodgovarajuceg Id-a");
@@ -88,7 +88,7 @@ namespace TorrentClient
 
 
 
-        private void cancle()
+        private void cancel(byte[] message)
         {
             throw new NotImplementedException();
         }
@@ -183,16 +183,18 @@ namespace TorrentClient
                 int pieceLength = torrentInfo.PieceLength;
 
                 var fileInfo = new System.IO.FileInfo(torrentInfo.File.Path);
-                FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
+                lock(_connection.localClient.dataStoringLocker){
+                    FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
 
-                int writingOffset = pieceIndex * pieceLength;
+                    int writingOffset = pieceIndex * pieceLength;
 
-                try{
-                    fileStream.Seek(writingOffset, SeekOrigin.Begin);
-                    fileStream.Write(piece, 0, pieceLength);
-                }
-                finally{
-                    fileStream.Close();
+                    try{
+                        fileStream.Seek(writingOffset, SeekOrigin.Begin);
+                        fileStream.Write(piece, 0, pieceLength);
+                    }
+                    finally{
+                        fileStream.Close();
+                    }
                 }
             }
             else
@@ -220,18 +222,19 @@ namespace TorrentClient
                     //piece je iz jednog filea
 
                     var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
-                    FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read);
+                    FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Read);
 
                     int writingOffset = offsetInTorrent - fileOffset; //offset u fileu, ne u torrentu
-
-                    try
-                    {
-                        fileStream.Seek(writingOffset, SeekOrigin.Begin);
-                        fileStream.Write(piece, 0, pieceLength);
-                    }
-                    finally
-                    {
-                        fileStream.Close();
+                    lock(_connection.localClient.dataStoringLocker){
+                        try
+                        {
+                            fileStream.Seek(writingOffset, SeekOrigin.Begin);
+                            fileStream.Write(piece, 0, pieceLength);
+                        }
+                        finally
+                        {
+                            fileStream.Close();
+                        }
                     }
                 }
                 else
@@ -249,15 +252,16 @@ namespace TorrentClient
 
                         var fileInfo = new System.IO.FileInfo(torrentInfo.Files[fileIndex].Path);
                         FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
-
-                        try
-                        {
-                            fileStream.Seek(startWritingOffset, SeekOrigin.Begin);
-                            fileStream.Write(tempBuffer, 0, bytesToWrite);
-                        }
-                        finally
-                        {
-                            fileStream.Close();
+                        lock(_connection.localClient.dataStoringLocker){
+                            try
+                            {
+                                fileStream.Seek(startWritingOffset, SeekOrigin.Begin);
+                                fileStream.Write(tempBuffer, 0, bytesToWrite);
+                            }
+                            finally
+                            {
+                                fileStream.Close();
+                            }
                         }
 
                         //priprema za pisanje u  slijedeci file
@@ -280,12 +284,14 @@ namespace TorrentClient
         }
 
         private void logPieceRecival(int pieceIndex){
-            try{
-                TextWriter logWriter = new StreamWriter(_connection.localClient.logFilePath);
-                logWriter.WriteLine(pieceIndex.ToString());
-                logWriter.Close();
-            }catch{
-                //ozbiljni problemi! ovo bolje da se ne dogodi
+            lock(_connection.localClient.logCreatingLocker){
+                try{
+                    TextWriter logWriter = File.AppendText(_connection.localClient.logFilePath);
+                    logWriter.WriteLine(pieceIndex.ToString());
+                    logWriter.Close();
+                }catch{
+                    //ozbiljni problemi! ovo bolje da se ne dogodi
+                }
             }
         }
 
@@ -356,12 +362,12 @@ namespace TorrentClient
 
         private void unchoke()
         {
-            throw new NotImplementedException();
+            _connection.connectionState.localChoked = false;
         }
 
         private void choke()
         {
-            throw new NotImplementedException();
+            _connection.connectionState.localChoked = true;
         }
 
     }
