@@ -1,0 +1,2 @@
+C:\Users\Kaimi\Documents\Fax\Rassus\AnaDirektorij\TorrentClient\TorrentClient\bin\Debug\TorrentClient.exe.config
+C:\Users\Kaimi\Documents\Fax\Rassus\TomaDirektorij\TorrentClient\TorrentClient\bin\Debug\TorrentClient.exe.config
