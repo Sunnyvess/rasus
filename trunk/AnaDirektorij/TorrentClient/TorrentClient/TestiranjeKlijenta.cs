@@ -14,7 +14,7 @@ namespace TorrentClient
         //     0.- port na kojem prihvacam konekcije
         //     1.- ime ovog klijenta (20 znakova)
         //     2.- lokacija torrent fajla
-        //     3.- path do log datoteke koristene u skidanju ovog filea
+        //     3.- path do log datoteke koristene u skidanju ovog filea (SAMO PATH, NE i naziv datoteke, npr c:\, datoteka je hardkodirana i zove se logg.txt)
         //     4. nadalje - popis svih portova na kojima su klijenti na koje se mogu spojiti
         static void Main(string[] args)
         {
