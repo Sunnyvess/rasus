@@ -210,25 +210,7 @@ namespace TorrentClient
             {
                 var torrentInfo = (SingleFileTorrentInfo)_torrent.Info;
                 int pieceLength = torrentInfo.PieceLength;
-
-                int numOfPieces;
-                try{
-                    numOfPieces = _connection.PieceData.Length;
-                }catch{
-                    _connection.closeConnection("Primljeni su podaci bez da je poslan zahtjev za njima");
-                    return;
-                }
-                //ako je zadnji piece, moze biti druge duljine
-                if( pieceIndex == numOfPieces - 1){
-
-                    int fileLength = ((SingleFileTorrentInfo)_connection.localClient.torrentMetaInfo.Info).File.Length;
-                    int newPieceLength = fileLength - (numOfPieces - 1) * pieceLength;
-                    if (newPieceLength != 0)
-                    {
-                        pieceLength = newPieceLength;
-                    }
-                }
-
+                
                 var fileInfo = new System.IO.FileInfo(torrentInfo.File.Path);
                 lock(_connection.localClient.dataStoringLocker){
                     FileStream fileStream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
@@ -237,7 +219,7 @@ namespace TorrentClient
 
                     try{
                         fileStream.Seek(writingOffset, SeekOrigin.Begin);
-                        fileStream.Write(piece, 0, pieceLength);
+                        fileStream.Write(piece, 0, piece.Length);
                     }
                     finally{
                         fileStream.Close();
@@ -276,7 +258,7 @@ namespace TorrentClient
                         try
                         {
                             fileStream.Seek(writingOffset, SeekOrigin.Begin);
-                            fileStream.Write(piece, 0, pieceLength);
+                            fileStream.Write(piece, 0, piece.Length);
                         }
                         finally
                         {
