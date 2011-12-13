@@ -61,7 +61,7 @@ namespace TrackerCommunication
             get { return peers.Count; }
         }
 
-       /* public Peer this[int index] {
+      /*  public Peer this[int index] {
             get {
                 if ((index < 0) || (index >= peers.Count))
                     throw new System.InvalidOperationException("Index before/after elements on container.");

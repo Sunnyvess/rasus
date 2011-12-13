@@ -7,17 +7,8 @@ namespace TrackerCommunication
 {
     class Response
     {
-
-        public int interval
-        {
-            get;
-            set;
-        }
-
-        public Peers peers
-        {
-            get;
-            set;
-        }
+        public string failureReason;
+        public double interval;
+        public Peers peers;
     }
 }

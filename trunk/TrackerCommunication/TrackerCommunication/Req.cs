@@ -21,9 +21,10 @@ namespace TrackerCommunication
         private double uploaded;
         private double downloaded;
         private double left;
-        private TrackerEvents status;
+        //private TrackerEvents status;
         private string trackerGetRequest;
         private RequestState requestState;
+        private Response res;
         private byte[] trackerResponse;
         private bool trackerFailure;
         private string trackerFailureReason;
@@ -48,7 +49,7 @@ namespace TrackerCommunication
         {
             uploaded = 0;
             downloaded = 0;
-            left = 0;
+            left = torrent.Info.PieceLength;
             // Prepare the Get string
             StringBuilder sb = new StringBuilder();
             sb.Append(urlTracker + "?");
@@ -58,10 +59,10 @@ namespace TrackerCommunication
             sb.Append("&uploaded=" + uploaded.ToString());
             sb.Append("&downloaded=" + downloaded.ToString());
             sb.Append("&left=" + left.ToString());
-            sb.Append("&ip=" + clientHost.PeerIP.ToString());
-            sb.Append("&numwant=0");
-            sb.Append("&event=" + status.ToString());
-            sb.Append("&compact=0");
+            //sb.Append("&ip=" + clientHost.PeerIP.ToString()); neobavezno
+            //sb.Append("&numwant=0"); neobavezno
+            //sb.Append("&event=" + status.ToString()); neobavezno
+            sb.Append("&compact=0"); // kompaktni(binarni) način ili riječnik (dictionary) način rada
             sb.Append("&no_peer_id=1");
             //sb.Append("&key=123"); neobavezno
             //sb.Append("&trackerid=0"); neobavezno
@@ -74,7 +75,7 @@ namespace TrackerCommunication
         public void SendTrackerGet()
         {
             PrepareTrackerRequest();
-            status = TrackerEvents.started;
+            //status = TrackerEvents.started;
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(trackerGetRequest);
@@ -98,13 +99,13 @@ namespace TrackerCommunication
                 }
                 catch (WebException we)
                 {
-                    Console.WriteLine("Exception 1:" + we.Message);
+                    Console.WriteLine("Exception 1:" + we.Message + "\n");
                 }
 
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception 2:" + e.Message);
+                Console.WriteLine("Exception 2:" + e.Message + "\n");
             }
             }
 
@@ -119,8 +120,7 @@ namespace TrackerCommunication
 
                 // Get the response
                 requestState.streamResponse = requestState.response.GetResponseStream();
-                Encoding encode = System.Text.Encoding.GetEncoding("utf-8");
-                StreamReader sr = new StreamReader(requestState.streamResponse, encode);
+                StreamReader sr = new StreamReader(requestState.streamResponse);
                 
                 // Tracker response must have less than 256 bytes.
                 char[] bufferRead = new char[512];
@@ -135,7 +135,7 @@ namespace TrackerCommunication
             }
             catch (WebException we)
             {
-                Console.WriteLine("Exception 3:" + we.Message);
+                Console.WriteLine("Exception 3:" + we.Message + "\n");
             }
             allDone.Set();
         }
@@ -171,16 +171,19 @@ namespace TrackerCommunication
                         Console.WriteLine("\n" + Conversions.ConvertByteArrayToString(response) + "\n");
                         trackerFailure = true;
                         trackerFailureReason = response.ToString();
+                        res.failureReason = trackerFailureReason;
                     }
                     else
                     {      // We have data from the Tracker
                         Console.WriteLine("\n Imamo pozitivan response! :) \n");
+                        //requestInterval = ((BEncoder.Integer)response["interval"]).IntegerValue;
+                        Console.WriteLine(Conversions.HexByteArrayToString(response) + "\n");
                         BEncoder.Decode(response);
                     }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Exception 4:" + e.Message);
+                    Console.WriteLine("Exception 4:" + e.Message + "\n");
                 }
             }
             
