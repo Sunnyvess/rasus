@@ -31,16 +31,16 @@ namespace TorrentClient
             switch (_messageId)
             {
                 case 0:
-                    choke();
+                    ProcessReceivedChoke();
                     break;
                 case 1:
-                    unchoke();
+                    ProcessReceivedUnchoke();
                     break;
                 case 2:
-                    interested();
+                    ProcessReceivedInterested();
                     break;
                 case 3:
-                    uninterested();
+                    ProcessReceivedUninterested();
                     break;
                 case 4:
                     ProcessReceivedHave(_message);
@@ -397,24 +397,24 @@ namespace TorrentClient
             //hisStatus[pieceIndex] = Status.Ima;
         }
 
-        private void uninterested()
+        private void ProcessReceivedUninterested()
         {
             _connection.connectionState.amInterested = false;
 
         }
 
-        private void interested()
+        private void ProcessReceivedInterested()
         {
             _connection.connectionState.amInterested = true;
         }
 
-        private void unchoke()
+        private void ProcessReceivedUnchoke()
         {
             _connection.connectionState.amChoking = false;
             
         }
 
-        private void choke()
+        private void ProcessReceivedChoke()
         {
             _connection.connectionState.amChoking = true;
         }
