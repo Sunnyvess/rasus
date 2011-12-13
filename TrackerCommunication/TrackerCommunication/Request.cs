@@ -40,13 +40,10 @@ namespace TrackerCommunication
 
         private void PrepareTrackerRequest()
         {
-            status = TrackerEvents.started;
             urlTracker = torrent.Announce.ToString();
             uploaded = 0;
             downloaded = 0;
-            left = 100;
-            Console.WriteLine(status);
-            Console.WriteLine(urlTracker);
+            left = torrent.Info.PieceLength;
             // Prepare the Get string
             StringBuilder sb = new StringBuilder();
             sb.Append(urlTracker + "?");
@@ -62,17 +59,22 @@ namespace TrackerCommunication
 
             // Escape the String
             trackerGetRequest = sb.ToString();
+            Console.WriteLine("urlTracker: " + urlTracker + " peer_id: " + Conversions.EscapeString(clientHost.PeerID) + " port: " + clientHost.PeerPort.ToString() + " left: " + left + " event: " + status.ToString() + " ip: " + clientHost.PeerIP.ToString());
             
         }
 
         public void SendTrackerGet()
         {
             PrepareTrackerRequest();
+            status = TrackerEvents.started;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(trackerGetRequest);
+            Console.WriteLine(request);
             requestState = new RequestState();
             // To store the request
             requestState.request = request;
+            Console.WriteLine(requestState);
             WebResponse response = request.GetResponse();
+            Console.WriteLine(response);
             try
             {
                 // Start the Async request
