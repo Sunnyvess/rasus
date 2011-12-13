@@ -378,22 +378,24 @@ namespace TorrentClient
 
         private void uninterested()
         {
-            throw new NotImplementedException();
+            this._connection.connectionState.amInterested = false;
+
         }
 
         private void interested()
         {
-            throw new NotImplementedException();
+            this._connection.connectionState.amInterested = true;
         }
 
         private void unchoke()
         {
-            _connection.connectionState.localChoked = false;
+            this._connection.connectionState.amChoking = false;
+            
         }
 
         private void choke()
         {
-            _connection.connectionState.localChoked = true;
+            this._connection.connectionState.amChoking = true;
         }
 
     }
