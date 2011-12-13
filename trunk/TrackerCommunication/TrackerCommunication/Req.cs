@@ -178,7 +178,7 @@ namespace TrackerCommunication
                         Console.WriteLine("\n Imamo pozitivan response! :) \n");
                         //requestInterval = ((BEncoder.Integer)response["interval"]).IntegerValue;
                         Console.WriteLine(Conversions.HexByteArrayToString(response) + "\n");
-                        BEncoder.Decode(response);
+                        BEncoder.Decode(response); //ovo je za desifriranje intervala i liste peerova
                     }
                 }
                 catch (Exception e)
