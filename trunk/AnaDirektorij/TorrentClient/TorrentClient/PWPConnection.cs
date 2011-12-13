@@ -107,6 +107,7 @@ namespace TorrentClient
                 MessageSender.SendBitField(localClient.pieceStatus, this);
             }
 
+            MessageSender.sendInterested(this);
             //za slanje keepalive poruka ako ništa nije poslano neko vrijeme
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -129,13 +130,14 @@ namespace TorrentClient
                 }
 				
 				//Komentar by Toma: Pretpostavljam da je ovo samo za testiranje
-                if(pieceSendingList.Count > 200 && !connectionState.peerChoking){
+                if(pieceSendingList.Count > 200 && !connectionState.amChoking){
                     MessageSender.sendChoke(this);
-                }else{
-                    if(pieceSendingList.Count <= 200 && connectionState.peerChoking){
-                    MessageSender.sendUnchoke(this);
-                    }
                 }
+
+                if(pieceSendingList.Count <= 200 && connectionState.amChoking){
+                    MessageSender.sendUnchoke(this);
+                }
+                
                 
                 //ovo smislit po nekom algoritmu!
                 //komentar by toma: Algoritam postavlja zastavice, dovoljno je provjeriti da su zastavice ok.
