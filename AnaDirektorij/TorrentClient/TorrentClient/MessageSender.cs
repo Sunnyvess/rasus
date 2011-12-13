@@ -138,6 +138,7 @@ namespace TorrentClient
             //cijela metoda se poziva pod lockom nad statusima
             while (!(myStatus[index] == Status.Nema && hisStatus[index] == Status.Ima))
             {
+                MessageSender.sendInterested(this);
                 index = (index + 1) % numOfPieces;
                 
                 //nije potrebno al nek ima
