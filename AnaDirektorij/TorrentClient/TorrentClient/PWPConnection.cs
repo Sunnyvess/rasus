@@ -101,17 +101,19 @@ namespace TorrentClient
             Thread messageListenerThread = new Thread(new ParameterizedThreadStart(messageListener.Listen));
             messageListenerThread.Start(clientStream);
 
-            //Console.WriteLine("Radimo nešto korisno zajedno!");
+            Console.WriteLine("Radimo nešto korisno zajedno!");
 
             lock(localClient.lockerStatusaDjelova){
                 MessageSender.SendBitField(localClient.pieceStatus, this);
             }
 
+            System.Threading.Thread.Sleep(200);
+
             MessageSender.sendInterested(this);
             //za slanje keepalive poruka ako ništa nije poslano neko vrijeme
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-
+            
             while (true)
             {
                 if (!peerClient.Connected)
@@ -128,7 +130,7 @@ namespace TorrentClient
                         MessageSender.SendHave(index, this);
                     }
                 }
-				
+				/*
 				//Komentar by Toma: Pretpostavljam da je ovo samo za testiranje
                 if(pieceSendingList.Count > 200 && !connectionState.amChoking){
                     MessageSender.sendChoke(this);
@@ -136,7 +138,8 @@ namespace TorrentClient
 
                 if(pieceSendingList.Count <= 200 && connectionState.amChoking){
                     MessageSender.sendUnchoke(this);
-                }
+                }*/
+
                 
                 
                 //ovo smislit po nekom algoritmu!

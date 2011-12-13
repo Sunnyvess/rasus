@@ -401,6 +401,7 @@ namespace TorrentClient
             lock(_connection.piecesStatusLocker){
                 _connection.peerPiecesStatus[pieceIndex] = Status.Ima;
             }
+            
         }
 
         private void ProcessReceivedUninterested()

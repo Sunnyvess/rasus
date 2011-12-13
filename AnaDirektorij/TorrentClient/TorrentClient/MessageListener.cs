@@ -83,10 +83,6 @@ namespace MessageCommunication
                 var payload = new byte[payloadSize];
                 Buffer.BlockCopy(message, 1, payload, 0, payloadSize);
 
-                if(messageId != 4){
-                    int a;
-                }
-
                 MessageHandler messageHandler = new MessageHandler(_connection, messageId, payload);
 
                 Thread messageHandlerThread = new Thread(new ThreadStart(messageHandler.HandleMessage));

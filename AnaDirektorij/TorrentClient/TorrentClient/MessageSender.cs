@@ -112,7 +112,7 @@ namespace TorrentClient
                     }
 
                     //upisi bit
-                    statusList[i] = (statusList[i] << 1) & bit;
+                    statusList[i] = (byte)((statusList[i] << 1) & bit);
                 }
             }
 
@@ -122,7 +122,7 @@ namespace TorrentClient
             
             Buffer.BlockCopy(Convertor.ConvertIntToBytes(messageLength), 0, message, 0, 4);
             message[4] = messageId;
-            Buffer.BlockCopy(statusList, 0, message, 5, numOfPieces);
+            Buffer.BlockCopy(statusList, 0, message, 5, bitfieldLength);
 
             connection.sendMessage(message);
         }
@@ -157,6 +157,8 @@ namespace TorrentClient
                     return;
                 }
             }
+
+
 
             //označi da si si bezeciral piece :D
             lock(connection.localClient.lockerStatusaDjelova){
