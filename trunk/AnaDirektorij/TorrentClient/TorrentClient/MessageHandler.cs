@@ -397,8 +397,9 @@ namespace TorrentClient
         private void ProcessReceivedHave(byte[] payload)
         {
             //payload je index piecea
+            //int pieceIndex = BitConverter.ToInt32(Convertor.ConvertToBigEndian(payload), 0);
             int pieceIndex = BitConverter.ToInt32(Convertor.ConvertToBigEndian(payload), 0);
-
+            
             lock(_connection.piecesStatusLocker){
                 _connection.peerPiecesStatus[pieceIndex] = Status.Ima;
             }
