@@ -59,7 +59,7 @@ namespace TorrentClient
                     break;
                 default:
                     //_connection.closeConnection("Pristigla poruka neodgovarajuceg Id-a");
-                    Console.WriteLine("Pristigla poruka neodgovarajuceg Id-a");
+                    Console.WriteLine("Pristigla poruka neodgovarajuceg Id-a"); //po specifikaciji poruke nepoznatog ID-a se ignoriraju
                     break;
             }
         }
