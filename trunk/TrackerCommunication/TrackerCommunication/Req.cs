@@ -161,8 +161,9 @@ namespace TrackerCommunication
                     else
                     {      // We have data from the Tracker
                         Console.WriteLine("\n Imamo pozitivan response! :) \n");
-                        Console.WriteLine(Conversions.HexByteArrayToString(response) + "\n");
-                        BEncoder.Decode(response); //decode and get interval and peer list
+                        Console.WriteLine(Conversions.ConvertByteArrayToString(response) + "\n");
+                        string resp = Conversions.ConvertByteArrayToString(response);
+                        BEncoder.Decode(resp); //decode and get interval and peer list
                     }
                 }
                 catch (Exception e)
