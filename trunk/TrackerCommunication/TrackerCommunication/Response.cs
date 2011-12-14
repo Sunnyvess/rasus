@@ -7,13 +7,25 @@ namespace TrackerCommunication
 {
     class Response
     {
-        public string failureReason;
-        public double interval;
+        private string failureReason;
+        private double interval;
         //public int complete; neobavezno
         //public int incomplete; neobavezno
         //public Peers peers; neobavezno
         //public string warning_message; neobavezno
         //public double min_interval; neobavezno
         //public byte[] trackerid; neobavezno
+
+        public string FailureReason
+        {
+            get { return failureReason; }
+            set { failureReason = value; }
+        }
+
+        public double Interval
+        {
+            get { return interval; }
+            set { interval = value; }
+        }
     }
 }

@@ -19,7 +19,6 @@ namespace TrackerCommunication
                 peerID[index++] = letter;
             // Random ID
             for (; index < 20; index++)
-                /// TODO: Generar random byte
                 peerID[index] = (byte)'A';
         }
 
