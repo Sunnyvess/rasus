@@ -58,7 +58,8 @@ namespace TorrentClient
                     ProcessReceivedCancel(_message);
                     break;
                 default:
-                    _connection.closeConnection("Pristigla poruka neodgovarajuceg Id-a");
+                    //_connection.closeConnection("Pristigla poruka neodgovarajuceg Id-a");
+                    Console.WriteLine("Pristigla poruka neodgovarajuceg Id-a");
                     break;
             }
         }

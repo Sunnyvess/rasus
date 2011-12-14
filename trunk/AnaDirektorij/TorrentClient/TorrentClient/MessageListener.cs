@@ -35,10 +35,11 @@ namespace MessageCommunication
                     return;
                 }
 
-                int readedBytes;
+                int readedBytes, readedBytesUkupni = 0, messageSize = 0;
                 try
                 {
                     readedBytes = stream.Read(messageSizeByte, 0, 4);
+                    //if (readedBytes != 4) _connection.closeConnection("Primljeno != 4 bytea message size");
                     if (readedBytes == 0)
                     {
                         _connection.closeConnection("Primljena je poruka duljine nula");
@@ -50,7 +51,7 @@ namespace MessageCommunication
                     _connection.closeConnection("PogreŠka kod čitanja sa streama");
                 }
 
-                int messageSize = BitConverter.ToInt32(Convertor.ConvertToBigEndian(messageSizeByte), 0);
+                messageSize = BitConverter.ToInt32(Convertor.ConvertToBigEndian(messageSizeByte), 0);
                 //Console.WriteLine("Primio sam poruku duljine {0}", messageSize);
 
                 //hvatanje keap alive poruke
@@ -61,11 +62,22 @@ namespace MessageCommunication
 
                 try
                 {
-                    readedBytes = stream.Read(message, 0, messageSize);
-                    if (readedBytes == 0)
+                    while (readedBytesUkupni != messageSize)
                     {
-                        _connection.closeConnection("Primljena je poruka duljine nula");
-                        break;
+                        readedBytes = stream.Read(message, readedBytesUkupni, messageSize - readedBytesUkupni);
+                        readedBytesUkupni = readedBytesUkupni + readedBytes;
+                        /*if (readedBytesUkupni != messageSize)
+                        {
+                            Console.WriteLine("Pročitano manje nego očekivano {0} < {1}", readedBytes, messageSize);
+                            continue;
+                            //readedBytes = stream.Read(message, readedBytes, messageSize - readedBytes);
+                            //messageSize = readedBytes; //Ako je primljeno manje nego veličina punog piecea, onda je messageSize = pročitana veličina! NEVALJA!
+                        }*/
+                        if (readedBytes == 0)
+                        {
+                            _connection.closeConnection("Primljena je poruka duljine nula");
+                            break;
+                        }
                     }
 
                 }
@@ -79,6 +91,7 @@ namespace MessageCommunication
                 int messageId = BitConverter.ToInt32(Convertor.ConvertToBigEndian(messageIdInBytes), 0);
                 Console.WriteLine("Id primljene poruke je {0}", messageId);
 
+                //int payloadSize = messageSize - 1;
                 int payloadSize = messageSize - 1;
                 var payload = new byte[payloadSize];
                 Buffer.BlockCopy(message, 1, payload, 0, payloadSize);
