@@ -103,7 +103,11 @@ namespace TorrentClient
                 {
                     if (i * 8 + j < numOfPieces)
                     {
-                        bit = myStatus[i] == Status.Ima ? (byte)1 : (byte)0;
+                        if (myStatus[i * 8 + j] == Status.Ima)
+                            bit = 1;
+                        else
+                            bit = 0;
+                        //bit = (myStatus[(i*8+j)] == Status.Ima) ? (byte)1 : (byte)0; <- OVO NE VALJA... ?!?! Ekvivalentni kod odmah iznad radi super.
                     }
                     else
                     {
@@ -112,7 +116,8 @@ namespace TorrentClient
                     }
 
                     //upisi bit
-                    statusList[i] = (byte)((statusList[i] << 1) | bit);
+                    statusList[i] = (byte)(((int)statusList[i]) << 1 | (int)bit);
+                    //(byte)((statusList[i] << 1) | bit);
                 }
             }
 
