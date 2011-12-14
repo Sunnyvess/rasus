@@ -25,7 +25,6 @@ namespace TrackerCommunication
         private RequestState requestState;
         private byte[] trackerResponse;
 
-        Response res = new Response();
 
         public static ManualResetEvent allDone = new ManualResetEvent(false);
         Torrent torrent = new Torrent(@"D:\Downloads\Hurry_Up.torrent");
@@ -146,6 +145,8 @@ namespace TrackerCommunication
 
         private void ProcessTrackerResponse()
         {
+            Response res = new Response();
+
             if (trackerResponse != null)
             {
                 try
