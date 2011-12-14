@@ -21,21 +21,14 @@ namespace TrackerCommunication
         private double uploaded;
         private double downloaded;
         private double left;
-        //private TrackerEvents status;
         private string trackerGetRequest;
         private RequestState requestState;
-        private Response res;
         private byte[] trackerResponse;
-        private bool trackerFailure;
-        private string trackerFailureReason;
-        private int requestInterval;
 
+        Response res = new Response();
 
         public static ManualResetEvent allDone = new ManualResetEvent(false);
-        //private string path;
         Torrent torrent = new Torrent(@"D:\Downloads\Hurry_Up.torrent");
-
-        //path = "D:\Downloads\Brave_New_World_1of5.torrent";
 
         public byte[] infoHash()
         {
@@ -59,13 +52,13 @@ namespace TrackerCommunication
             sb.Append("&uploaded=" + uploaded.ToString());
             sb.Append("&downloaded=" + downloaded.ToString());
             sb.Append("&left=" + left.ToString());
-            //sb.Append("&ip=" + clientHost.PeerIP.ToString()); neobavezno
-            //sb.Append("&numwant=0"); neobavezno
-            //sb.Append("&event=" + status.ToString()); neobavezno
-            sb.Append("&compact=0"); // kompaktni(binarni) način ili riječnik (dictionary) način rada
-            sb.Append("&no_peer_id=1");
-            //sb.Append("&key=123"); neobavezno
-            //sb.Append("&trackerid=0"); neobavezno
+            //sb.Append("&ip=" + clientHost.PeerIP.ToString()); optional
+            //sb.Append("&numwant=0"); optional
+            //sb.Append("&event=" + status.ToString()); optional
+            sb.Append("&compact=1"); // compact(binary) or dictionary mode
+            //sb.Append("&no_peer_id=1");
+            //sb.Append("&key=123"); optional
+            //sb.Append("&trackerid=0"); optional
             
 
             // Escape the String
@@ -75,7 +68,6 @@ namespace TrackerCommunication
         public void SendTrackerGet()
         {
             PrepareTrackerRequest();
-            //status = TrackerEvents.started;
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(trackerGetRequest);
@@ -92,10 +84,7 @@ namespace TrackerCommunication
                     ThreadPool.RegisterWaitForSingleObject(result.AsyncWaitHandle, new WaitOrTimerCallback(TrackerGetTimeOut), requestState, requestTimeOut, true);
 
                     allDone.WaitOne();
-                   // requestState.response.Close();
                     trackerResponse = null;
-                    trackerFailure = false;
-                    trackerFailureReason = string.Empty;
                 }
                 catch (WebException we)
                 {
@@ -150,7 +139,6 @@ namespace TrackerCommunication
                 if (request != null)
                     request.Abort();
                 // To create the timer
-                requestInterval = 2 * 60 * 1000;
                 ProcessTrackerResponse();
             }
         }
@@ -158,10 +146,8 @@ namespace TrackerCommunication
 
         private void ProcessTrackerResponse()
         {
-            // The tracker response is a Dictionary
             if (trackerResponse != null)
             {
-                // Create the dictionary
                 try
                 {
                     response = trackerResponse;
@@ -169,16 +155,13 @@ namespace TrackerCommunication
                     if (Conversions.ConvertByteArrayToString(response).Contains("failure reason"))
                     {
                         Console.WriteLine("\n" + Conversions.ConvertByteArrayToString(response) + "\n");
-                        trackerFailure = true;
-                        trackerFailureReason = response.ToString();
-                        res.failureReason = trackerFailureReason;
+                        res.FailureReason = response.ToString();
                     }
                     else
                     {      // We have data from the Tracker
                         Console.WriteLine("\n Imamo pozitivan response! :) \n");
-                        //requestInterval = ((BEncoder.Integer)response["interval"]).IntegerValue;
                         Console.WriteLine(Conversions.HexByteArrayToString(response) + "\n");
-                        BEncoder.Decode(response); //ovo je za desifriranje intervala i liste peerova
+                        BEncoder.Decode(response); //decode and get interval and peer list
                     }
                 }
                 catch (Exception e)
@@ -195,6 +178,7 @@ namespace TrackerCommunication
             if (torrent.AnnounceList == null)
             {
                 urlTracker = torrent.Announce.ToString();
+                Console.WriteLine(urlTracker);
                 SendTrackerGet();
             }
             else

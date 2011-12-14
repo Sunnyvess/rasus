@@ -9,7 +9,10 @@ namespace TrackerCommunication
     {
         private PeerID peerID;
         private string peerIP;
-        private int peerPort;
+        private int peerPort; 
+        private double uploaded;
+        private double downloaded;
+        private double left;
 
         public Peer()
         {
@@ -31,6 +34,24 @@ namespace TrackerCommunication
         public int PeerPort
         {
             get { return peerPort; }
+        }
+
+        public double Uploaded
+        {
+            get { return uploaded; }
+            set { uploaded = value; }
+        }
+
+        public double Downloaded
+        {
+            get { return downloaded; }
+            set { downloaded = value; }
+        }
+
+        public double Left
+        {
+            get { return left; }
+            set { left = value; }
         }
     }
 }
