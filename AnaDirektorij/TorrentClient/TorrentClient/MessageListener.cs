@@ -62,6 +62,11 @@ namespace MessageCommunication
 
                 try
                 {
+                    //stream.Read ne garantira da će ukupni messageSize biti pročitan, 
+                    //nego u readedBytes vrati onoliko koliko do sada ima u bufferu. U najvećem 
+                    //broju slučajeva readedBytes == messageSize, no ponekad se dogodi da jedostavno
+                    //nisu pristigli svi paketi, pa vrati "koliko ima". Zbog toga je potrebno stalno u
+                    //while petlji provjeravati jel sve pristiglo što očekujemo...
                     while (readedBytesUkupni != messageSize)
                     {
                         readedBytes = stream.Read(message, readedBytesUkupni, messageSize - readedBytesUkupni);
