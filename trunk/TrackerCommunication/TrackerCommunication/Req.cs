@@ -145,7 +145,6 @@ namespace TrackerCommunication
 
         private void ProcessTrackerResponse()
         {
-            Response res = new Response();
 
             if (trackerResponse != null)
             {
@@ -155,15 +154,18 @@ namespace TrackerCommunication
                     // Is there a failure reason ??
                     if (Conversions.ConvertByteArrayToString(response).Contains("failure reason"))
                     {
+                        Response res = new Response();
                         Console.WriteLine("\n" + Conversions.ConvertByteArrayToString(response) + "\n");
-                        res.FailureReason = response.ToString();
+                        res.Failure.failureReason = response.ToString();
                     }
                     else
                     {      // We have data from the Tracker
                         Console.WriteLine("\n Imamo pozitivan response! :) \n");
-                        Console.WriteLine(Conversions.ConvertByteArrayToString(response) + "\n");
-                        string resp = Conversions.ConvertByteArrayToString(response);
-                        BEncoder.Decode(resp); //decode and get interval and peer list
+                        Console.WriteLine(Conversions.ConvertByteArrayToString(response));
+                        string re = Conversions.ConvertByteArrayToString(response);
+                        BEncoder.Decode(re);
+                        Response res = new Response(response);//decode and get interval and peer list
+                        Console.WriteLine(res + "\n");
                     }
                 }
                 catch (Exception e)

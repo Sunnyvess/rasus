@@ -1,31 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
+using System;
 
-namespace TrackerCommunication
+namespace FairTorrent
 {
-    class Response
+    public class FailureInfo
     {
-        private string failureReason;
-        private double interval;
-        //public int complete; neobavezno
-        //public int incomplete; neobavezno
-        //public Peers peers; neobavezno
-        //public string warning_message; neobavezno
-        //public double min_interval; neobavezno
-        //public byte[] trackerid; neobavezno
+        public string failureReason { get; set; }
+    }
 
-        public string FailureReason
+    public class Response
+    {
+        public string interval { get; set; }
+        public string complete { get; set; }
+        public string incomplete { get; set; }
+        public string min_interval { get; set; }
+        public byte[] Peers { get; set; }
+
+        public FailureInfo Failure { get; set; }
+
+        public Response()
         {
-            get { return failureReason; }
-            set { failureReason = value; }
         }
 
-        public double Interval
+        public Response(byte[] bencodedData)
         {
-            get { return interval; }
-            set { interval = value; }
+            DecodeResponse(bencodedData);
         }
+
+        public void DecodeResponse(byte[] bencodedData)
+        {
+            Dictionary<string, object> dict = BEncoder.BEncoder.Decode(bencodedData);
+
+            this.interval = (string)dict["interval"];
+            this.complete = (string)dict["complete"];
+            this.incomplete = (string)dict["incomplete"];
+            this.min_interval = (string)dict["min_interval"];
+            this.Peers = (byte[])dict["peers"];
+         
+
+        }
+
     }
 }
