@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackerCommunication", "TrackerCommunication\TrackerCommunication.csproj", "{05EE04C1-8FD7-45D1-B7D3-336397D6A4B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bencoder", "..\TorrentClient\Bencoder\Bencoder\Bencoder.csproj", "{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bencoder", "..\Bencoder\Bencoder\Bencoder.csproj", "{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}"
 EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
