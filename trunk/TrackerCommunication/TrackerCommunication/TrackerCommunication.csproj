@@ -54,13 +54,13 @@
     <Compile Include="SHA1.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TorrentClient\Bencoder\Bencoder\Bencoder.csproj">
+    <None Include="ClassDiagram1.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Bencoder\Bencoder\Bencoder.csproj">
       <Project>{61DDDB90-E7BF-4DB9-87C2-02E6FAC5407D}</Project>
       <Name>Bencoder</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
