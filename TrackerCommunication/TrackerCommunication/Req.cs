@@ -27,11 +27,11 @@ namespace TrackerCommunication
 
 
         public static ManualResetEvent allDone = new ManualResetEvent(false);
-        Torrent torrent = new Torrent(@"D:\Downloads\Hurry_Up.torrent");
+        Torrent torrent = new Torrent("C:\\Users\\Toma\\Downloads\\Money_as_Debt_(2006)__DVDR(xvid)__NL_Subs__DMT.6763327.TPB.torrent");
 
         public byte[] infoHash()
         {
-            return SHA1.HashValue(InfoExtractor.ExtractInfoValue("D:\\Downloads\\Hurry_Up.torrent"));
+            return SHA1.HashValue(InfoExtractor.ExtractInfoValue("C:\\Users\\Toma\\Downloads\\Money_as_Debt_(2006)__DVDR(xvid)__NL_Subs__DMT.6763327.TPB.torrent"));
         }
 
 

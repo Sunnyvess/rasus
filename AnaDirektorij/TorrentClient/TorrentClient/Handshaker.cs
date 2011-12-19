@@ -132,6 +132,7 @@ namespace TorrentClient
             byte[] message = new byte[68];
             int bytesRead = 0;
 
+
             bytesRead = clientStream.Read(message, 0, 68);
 
             if (bytesRead == 0)
